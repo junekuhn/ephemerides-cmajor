@@ -1,7 +1,7 @@
-1. waveform generation
-2. interface for waveform generation
-3. test functions 
-3. multi-voice allocation
+waveform select
+envelope
+move voice to separate graph 
+voice allocator & top level param
 4. portamento
 5. microtonal functions
 6. interface development
@@ -13,4 +13,9 @@ everything should be in std, like std::oscillators::Shape::sawtoothUp
 it seems that there's no way to implement a selection / option without a custom gui 
 i need to look at event to see if there are discrete options 
 input sine.shapeIn; was all I needed
+
+Language feature not yet implemented: Exposing child endpoints which use processor arrays!
+Language feature not yet implemented: top-level arrays of inputs!
+exposing shape choice to gui
+
 
