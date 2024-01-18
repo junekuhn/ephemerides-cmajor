@@ -1,0 +1,18 @@
+
+{
+    "CmajorVersion":    1,
+    "ID":               "com.your_name.your_patch_ID",
+    "version":          "1.0",
+    "name":             "Ephemerides",
+    "description":      "Ephemerides",
+    "category":         "generator",
+    "manufacturer":     "Your Company Goes Here",
+    "isInstrument":     true,
+
+    "source":           "Ephemerides.cmajor",
+
+    "view":             { "src": "view/index.js",
+                          "width": 500,
+                          "height": 300,
+                          "resizable": true }
+}

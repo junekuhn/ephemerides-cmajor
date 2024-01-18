@@ -1,0 +1,28 @@
+
+
+graph Microtones [[main]]
+{
+    //defining inputs and outputs
+    output stream float out;
+    input gain.volume;
+    input wave.frequencyIn;
+    input event std::midi::Message midiIn;
+    input event (std::notes::NoteOn, std::notes::NoteOff) eventIn;
+    
+    input wave.shapeIn;
+
+    //create oscillator
+    node wave = std::oscillators::PolyblepOscillator (float, std::oscillators::Shape::sine, 440);
+    node gain = std::levels::SmoothedGain (float);
+    //envelope
+    node env = std::envelopes::FixedASR ( 0.1f, 0.8f );
+
+    //connect nodes together
+    connection {
+        //send a NoteOn to eventin
+        midiIn -> std::midi::MPEConverter -> env.eventIn;
+        env.gainOut * wave.out -> gain.in;
+        gain.out -> out;
+    }
+}
+
