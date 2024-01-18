@@ -5,24 +5,45 @@ graph Microtones [[main]]
     //defining inputs and outputs
     output stream float out;
     input gain.volume;
-    input wave.frequencyIn;
+    // input wave.frequencyIn;
     input event std::midi::Message midiIn;
-    input event (std::notes::NoteOn, std::notes::NoteOff) eventIn;
+    // input event (std::notes::NoteOn, std::notes::NoteOff) eventIn;
     
-    input wave.shapeIn;
+    input oneVoice.shapeIn;
 
     //create oscillator
-    node wave = std::oscillators::PolyblepOscillator (float, std::oscillators::Shape::sine, 440);
+    // node wave = std::oscillators::PolyblepOscillator (float, std::oscillators::Shape::sine, 440);
     node gain = std::levels::SmoothedGain (float);
     //envelope
-    node env = std::envelopes::FixedASR ( 0.1f, 0.8f );
+    // node env = std::envelopes::FixedASR ( 0.1f, 0.8f );
+    node oneVoice = Voice;
 
     //connect nodes together
     connection {
         //send a NoteOn to eventin
-        midiIn -> std::midi::MPEConverter -> env.eventIn;
-        env.gainOut * wave.out -> gain.in;
+        midiIn -> std::midi::MPEConverter -> oneVoice.notesIn;
+        // env.gainOut * wave.out -> gain.in;
+        oneVoice.out -> gain.in;
         gain.out -> out;
+    }
+}
+
+graph Voice {
+    input event (std::notes::NoteOn, std::notes::NoteOff) notesIn;
+    input wave.shapeIn;
+    output stream float out;
+
+    node {
+        //envelope
+        env = std::envelopes::FixedASR ( 0.1f, 0.8f ); 
+        // freqCalculator = FreqCalculator;
+        wave = std::oscillators::PolyblepOscillator (float, std::oscillators::Shape::sine, 440);
+    }
+
+    connection {
+        notesIn -> env.eventIn;
+        // freqCalculator.out -> wave.frequencyIn;
+        env.gainOut * wave.out -> out;
     }
 }
 
