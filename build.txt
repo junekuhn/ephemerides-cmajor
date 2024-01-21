@@ -2,9 +2,16 @@ waveform select
 envelope
 move voice to separate graph 
 voice allocator & top level param
+algorithm enum / input
 4. portamento
 5. microtonal functions
 6. interface development
+
+
+other potential features 
+- over C / Under C / etc. 
+- quantisation of base frequency 
+
 
 
 notes
@@ -17,5 +24,8 @@ input sine.shapeIn; was all I needed
 Language feature not yet implemented: Exposing child endpoints which use processor arrays!
 Language feature not yet implemented: top-level arrays of inputs!
 exposing shape choice to gui
+
+converting float64 to float32?
+
 
 

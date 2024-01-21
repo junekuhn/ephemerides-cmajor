@@ -1,3 +1,9 @@
+namespace E {
+    enum Algorithm {
+    Arithmetic, Ratio, Tet
+    }
+}
+
 
 
 graph Microtones [[main]]
@@ -9,8 +15,13 @@ graph Microtones [[main]]
     input event std::midi::Message midiIn;
     // input event (std::notes::NoteOn, std::notes::NoteOff) eventIn;
     input event float32 myShape [[ name: "shape", min: 0, max: 4, init: 0]];
+    input event E::Algorithm algorithmSelect [[ name: "algo", text: "Arithmetic|Ratio|Tet"]];
+
+
+
 
     const int numVoices = 8;
+    const int numKeys = 20;
     
 
 
@@ -26,9 +37,10 @@ graph Microtones [[main]]
     connection {
         //send a NoteOn to eventin
         midiIn -> std::midi::MPEConverter -> voiceAllocator;
+
         voiceAllocator.voiceEventOut -> voices.notesIn;
         myShape -> voices.shape;
-        // env.gainOut * wave.out -> gain.in;
+
         voices.out -> gain.in;
         gain.out -> out;
     }
@@ -50,9 +62,69 @@ graph Voice {
 
     connection {
         notesIn -> env.eventIn;
+        notesIn -> freqCalculator.eventIn;
         shape -> wave.shapeIn;
-        // freqCalculator.out -> wave.frequencyIn;
+        freqCalculator.out -> wave.frequencyIn;
         env.gainOut * wave.out -> out;
     }
 }
+
+// //not connected yet
+graph freqCalculator {
+    input event std::notes::NoteOn eventIn;
+    output event float out;
+
+    const int divisor = 12;
+    const int topValue = 2;
+    const int bottomValue = 1;
+    const float baseFrequency = 110;
+
+
+
+    event eventIn (std::notes::NoteOn e)
+    {
+        float ratio = calculateRatio(E::Algorithm::Tet, displaceIndex(int (e.pitch)));
+        out <- calculateFrequency(ratio);
+    }
+
+    int displaceIndex(int key) {
+        int offset = 49;
+        int c = 0;
+        
+        if(key % 2 == 0) {
+            offset = 50;
+            c = (offset - divisor) / 2 ;
+        } else {
+            c = (offset - divisor) / 2 +1;
+        }
+        
+        return key - c;
+    }
+
+    float calculateRatio(E::Algorithm algo, int index) {
+	    float ratio = 1;
+	
+
+		if (algo == E::Algorithm::Arithmetic) {
+            ratio = ((float(index) + 1.f) * (topValue - bottomValue)) / divisor + bottomValue;
+        } else if (algo == E::Algorithm::Ratio) {
+			ratio = (float(index) + 1.f) * (topValue/bottomValue) / divisor;
+        } else if (algo == E::Algorithm::Tet) {
+            ratio = pow( pow(float(topValue) / float(bottomValue), 1 / float(divisor)), float(index)+ 1.f);
+        }
+	
+        return ratio;
+        
+    }
+
+    float calculateFrequency(float ratio) {
+        return ratio * baseFrequency;
+    }
+
+
+}
+
+
+
+
 

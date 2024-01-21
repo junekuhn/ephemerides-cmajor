@@ -1,0 +1,26 @@
+there's a few things I want to outline for the interface design
+
+1. I want to take into account some post-human principles
+    absolute restriction and minimization
+2. I want to be able to use Glove midi 
+3. it looks like I still need a keyboard interface of at least 12 keys, up to 24 or so before it becomes a bit awkward
+
+When I'm playing, what do I do? 
+
+- Algorithm switching
+- switching hold mode constantly
+- brief taps to give off effects
+- the ASDR wasn't working very well 
+
+1. Given an algorithm, top, divisor, and bottom selected:
+    - disperse the notes in space, rotation, and pose 
+
+2. Given a selected of notes 
+    - disperse configuration params, but also the notes in space, rotation, and pose 
+    - env trigger
+    - remove note from drone
+
+3. hold mode 
+
+
+
