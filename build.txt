@@ -3,8 +3,13 @@ envelope
 move voice to separate graph 
 voice allocator & top level param
 algorithm enum / input
+unit testing for algorithm
+divisoer, num, denom inputs
 4. portamento
-5. microtonal functions
+attack and release 
+base note selection and quantization
+
+hold
 6. interface development
 
 
@@ -27,5 +32,16 @@ exposing shape choice to gui
 
 converting float64 to float32?
 
+displace index
+center is c3 - 60
+we want to extend from c2 to c4
+
+the state variables aren't updating, why?  I can't get the algorithm selection to stay
+
+looking at the graph there's two instances of freqCalculator, one in the voices, and another that's global. I can try passing 
+
+hoisted endpoints don't work for arrays
+
+for holdmode we ignore all noteoff events, turning noteon into a toggle
 
 

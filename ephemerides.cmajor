@@ -15,13 +15,23 @@ graph Microtones [[main]]
     input event std::midi::Message midiIn;
     // input event (std::notes::NoteOn, std::notes::NoteOff) eventIn;
     input event float32 myShape [[ name: "shape", min: 0, max: 4, init: 0]];
-    input event E::Algorithm algorithmSelect [[ name: "algo", text: "Arithmetic|Ratio|Tet"]];
+    input event int algorithmSelect [[ name: "algo", text: "Arithmetic|Ratio|Tet"]];
+    input event int topValue [[ name: "Numerator", min: 1, max: 24, init: 2]];
+    input event  int bottomValue [[ name: "Denominator", min: 1, max: 24, init: 1]];
+    input event int divisor [[ name: "Divisor", min: 2, max: 24, init: 12]];
+    input event float glide [[ name: "Glide", min: 0.01, max: 1, init: 0]];
+    input event float baseFrequency [[ name: "Base Frequency", min: 110, max: 880, init: 220]];
+    input event bool droneMode [[ name: "Drone Mode", init: false]];
+
+    //asdr
+    input event float attack [[ name: "Attack", min: 0.01, max: 0.25, init: 0.1 ]];
+    input event float release [[ name: "Release", min: 0.01, max: 4.0, init: 0.1 ]];
 
 
+    
 
-
-    const int numVoices = 8;
-    const int numKeys = 20;
+    const int numVoices = 8; 
+    const int numKeys = 24;
     
 
 
@@ -37,12 +47,20 @@ graph Microtones [[main]]
     connection {
         //send a NoteOn to eventin
         midiIn -> std::midi::MPEConverter -> voiceAllocator;
-
         voiceAllocator.voiceEventOut -> voices.notesIn;
         myShape -> voices.shape;
 
+        algorithmSelect -> voices.algoIn;
+        topValue -> voices.numeratorIn;
+        bottomValue -> voices.denominatorIn;
+        divisor -> voices.divisorIn;
+        glide -> voices.glideIn;
+        attack -> voices.attackIn;
+        release -> voices.releaseIn;
+        baseFrequency -> voices.baseFrequencyIn;
+
         voices.out -> gain.in;
-        gain.out -> out;
+        gain.out-> out;
     }
 }
 
@@ -50,67 +68,130 @@ graph Voice {
     input event (std::notes::NoteOn, std::notes::NoteOff) notesIn;
     //there's like an inheritance thing going on / polymorphism?
     input event float32 shape;
+    input event int algoIn;
+    input event int numeratorIn;
+    input event int denominatorIn;
+    input event int divisorIn;
+    input event float glideIn;
+    input event float attackIn;
+    input event float releaseIn;
+    input event float baseFrequencyIn;
     // wave.shapeIn;
     output stream float out;
+    
+    // float attack = 0.1f;
 
     node {
         //envelope
-        env = std::envelopes::FixedASR ( 0.1f, 0.8f ); 
+        env = NonFixedASR( 0.1f, 0.8f ); 
         // freqCalculator = FreqCalculator;
         wave = std::oscillators::PolyblepOscillator (float, std::oscillators::Shape::sine, 440);
+        // calculator = freqCalculator(E::Algorithm::Arithmetic);
     }
 
     connection {
         notesIn -> env.eventIn;
+
         notesIn -> freqCalculator.eventIn;
+        algoIn -> freqCalculator.algoIn;
+        numeratorIn -> freqCalculator.numeratorIn;
+        denominatorIn -> freqCalculator.denominatorIn;
+        divisorIn -> freqCalculator.divisorIn;
+        glideIn -> freqCalculator.glideIn;
+        baseFrequencyIn -> freqCalculator.baseFrequencyIn;
+
+        attackIn -> env.attackIn;
+        releaseIn -> env.releaseIn;
+
         shape -> wave.shapeIn;
         freqCalculator.out -> wave.frequencyIn;
         env.gainOut * wave.out -> out;
     }
 }
 
-// //not connected yet
-graph freqCalculator {
+processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
     input event std::notes::NoteOn eventIn;
+    input event int algoIn;
+    input event int numeratorIn;
+    input event int denominatorIn;
+    input event int divisorIn;
+    input event float glideIn;
+    input event float baseFrequencyIn;
     output event float out;
-
-    const int divisor = 12;
-    const int topValue = 2;
-    const int bottomValue = 1;
-    const float baseFrequency = 110;
-
-
 
     event eventIn (std::notes::NoteOn e)
     {
-        float ratio = calculateRatio(E::Algorithm::Tet, displaceIndex(int (e.pitch)));
-        out <- calculateFrequency(ratio);
+        console <- topValue;
+        ratio = calculateRatio(displaceIndex(int (e.pitch)));
+
     }
 
+    event algoIn (int newAlgo) {
+        let v = newAlgo;
+
+        if (v==0) algo = E::Algorithm::Arithmetic;
+        else if (v==1) algo = E::Algorithm::Ratio;
+        else algo = E::Algorithm::Tet;
+    }
+
+    event numeratorIn (int n) {
+        topValue = n;
+    }
+
+    event denominatorIn( int n ) {
+        bottomValue = n;
+    }
+
+    event divisorIn (int n) {
+        divisor = n;
+    }
+
+    event glideIn (float n) {
+        glide = n;
+    }
+    event baseFrequencyIn (float n) {
+        baseFrequency = n;
+    }
+
+    int divisor = 12;
+    int topValue = 2;
+    int bottomValue = 1;
+    float baseFrequency = 220;
+    const int center = 60; //c3
+    float ratio = 1;
+    float glide = 0.01f;
+    E::Algorithm algo = initAlgo;
+    
     int displaceIndex(int key) {
-        int offset = 49;
-        int c = 0;
+        // c is 48
+        // int c = 0;
         
-        if(key % 2 == 0) {
-            offset = 50;
-            c = (offset - divisor) / 2 ;
-        } else {
-            c = (offset - divisor) / 2 +1;
-        }
+        // if(key % 2 == 0) {
+        //     offset = 50;
+        //     c = (offset - divisor) / 2 ;
+        // } else {
+        //     c = (offset - divisor) / 2 +1;
+        // }
         
-        return key - c;
+        return key - 48;
     }
 
-    float calculateRatio(E::Algorithm algo, int index) {
+    float calculateRatio(int index) {
 	    float ratio = 1;
-	
+        float index_f = float(index);
+        float divisor_f = float(divisor);
+        float topValue_f = float(topValue);
+        float bottomValue_f = float(bottomValue);
+
+        //avoid divide by 0
+        if(index_f == 0) {index_f = 1;}
 
 		if (algo == E::Algorithm::Arithmetic) {
-            ratio = ((float(index) + 1.f) * (topValue - bottomValue)) / divisor + bottomValue;
+            ratio = ((index_f * (topValue - bottomValue)) / divisor) + bottomValue;
         } else if (algo == E::Algorithm::Ratio) {
-			ratio = (float(index) + 1.f) * (topValue/bottomValue) / divisor;
+			ratio = index_f * (topValue_f/bottomValue_f) / divisor_f;
         } else if (algo == E::Algorithm::Tet) {
-            ratio = pow( pow(float(topValue) / float(bottomValue), 1 / float(divisor)), float(index)+ 1.f);
+            ratio = pow( pow(topValue_f / bottomValue_f, 1 / divisor_f), index_f);
         }
 	
         return ratio;
@@ -121,7 +202,89 @@ graph freqCalculator {
         return ratio * baseFrequency;
     }
 
+    void main() {
+        float freq = 0;
 
+        loop {
+            
+            out <- freq;
+
+            // GLIDE
+            float difference = calculateFrequency(ratio) - freq;
+            freq += 0.001f * glide * difference ;
+
+            advance();
+        }
+    }
+}
+
+processor NonFixedASR (float32 attackSeconds,
+                    float32 releaseSeconds)
+{
+    input event (std::notes::NoteOn,
+                    std::notes::NoteOff) eventIn;
+    input event float attackIn;
+    input event float releaseIn;
+
+    output stream float gainOut;
+
+    //==============================================================================
+    float keyDownVelocity, currentLevel;
+    float attack = attackSeconds, release = releaseSeconds;
+
+    event eventIn (std::notes::NoteOn noteOn)        { keyDownVelocity = noteOn.velocity; }
+    event eventIn (std::notes::NoteOff noteOff)      { keyDownVelocity = 0; }
+    event attackIn (float v) {
+        attack = v;
+    }
+    event releaseIn (float v) {
+        release = v;
+    }
+
+    void main()
+    {
+        loop
+        {
+            while (keyDownVelocity == 0)
+                advance();
+
+            if (attack > 0)
+            {
+                let attackExponent = 1.0f / int32 (attack * float32 (processor.frequency));
+                let attackMultiplier = 2.0f ** -attackExponent
+                                        * (2.0f + keyDownVelocity) ** attackExponent;
+
+                while (currentLevel < keyDownVelocity)
+                {
+                    gainOut <- currentLevel;
+                    currentLevel = attackMultiplier * (currentLevel + 2.0f) - 2.0f;
+                    advance();
+                }
+            }
+            else
+            {
+                currentLevel = keyDownVelocity;
+            }
+
+            while (keyDownVelocity != 0)
+            {
+                gainOut <- currentLevel;
+                advance();
+            }
+
+            if (release > 0)
+            {
+                let decayFactor = pow (0.0001f, float32 (processor.period) / release);
+
+                while (keyDownVelocity == 0 && currentLevel > 0.0001f)
+                {
+                    gainOut <- currentLevel;
+                    currentLevel *= decayFactor;
+                    advance();
+                }
+            }
+        }
+    }
 }
 
 
