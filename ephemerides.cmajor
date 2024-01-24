@@ -41,14 +41,17 @@ graph Microtones [[main]]
     //envelope
     // node env = std::envelopes::FixedASR ( 0.1f, 0.8f );
     node voices = Voice[8];
-    node voiceAllocator = std::voices::VoiceAllocator(8);
+    node voiceAllocator = customVoiceAllocator(8);
 
     //connect nodes together
     connection {
         //send a NoteOn to eventin
-        midiIn -> std::midi::MPEConverter -> voiceAllocator;
+        midiIn -> std::midi::MPEConverter;
+        std::midi::MPEConverter.eventOut -> voiceAllocator.eventIn;
+        droneMode -> voiceAllocator.droneModeIn;
         voiceAllocator.voiceEventOut -> voices.notesIn;
         myShape -> voices.shape;
+        
 
         algorithmSelect -> voices.algoIn;
         topValue -> voices.numeratorIn;
@@ -76,6 +79,7 @@ graph Voice {
     input event float attackIn;
     input event float releaseIn;
     input event float baseFrequencyIn;
+    input event bool droneModeIn;
     // wave.shapeIn;
     output stream float out;
     
@@ -83,7 +87,7 @@ graph Voice {
 
     node {
         //envelope
-        env = NonFixedASR( 0.1f, 0.8f ); 
+        env = customEnvelope( 0.1f, 0.8f, false ); 
         // freqCalculator = FreqCalculator;
         wave = std::oscillators::PolyblepOscillator (float, std::oscillators::Shape::sine, 440);
         // calculator = freqCalculator(E::Algorithm::Arithmetic);
@@ -102,6 +106,7 @@ graph Voice {
 
         attackIn -> env.attackIn;
         releaseIn -> env.releaseIn;
+        droneModeIn -> env.droneModeIn;
 
         shape -> wave.shapeIn;
         freqCalculator.out -> wave.frequencyIn;
@@ -121,9 +126,9 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
 
     event eventIn (std::notes::NoteOn e)
     {
-        console <- topValue;
-        ratio = calculateRatio(displaceIndex(int (e.pitch)));
-
+        index = displaceIndex(int (e.pitch));
+        ratio = calculateRatio(index);
+        console <- calculateFrequency(ratio);
     }
 
     event algoIn (int newAlgo) {
@@ -132,25 +137,31 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
         if (v==0) algo = E::Algorithm::Arithmetic;
         else if (v==1) algo = E::Algorithm::Ratio;
         else algo = E::Algorithm::Tet;
+        ratio = calculateRatio(index);
     }
 
     event numeratorIn (int n) {
         topValue = n;
+        ratio = calculateRatio(index);
     }
 
     event denominatorIn( int n ) {
         bottomValue = n;
+        ratio = calculateRatio(index);
     }
 
     event divisorIn (int n) {
         divisor = n;
+        ratio = calculateRatio(index);
     }
 
     event glideIn (float n) {
         glide = n;
+        ratio = calculateRatio(index);
     }
     event baseFrequencyIn (float n) {
         baseFrequency = n;
+        ratio = calculateRatio(index);
     }
 
     int divisor = 12;
@@ -160,20 +171,11 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
     const int center = 60; //c3
     float ratio = 1;
     float glide = 0.01f;
+    int index = 60;
     E::Algorithm algo = initAlgo;
     
     int displaceIndex(int key) {
-        // c is 48
-        // int c = 0;
-        
-        // if(key % 2 == 0) {
-        //     offset = 50;
-        //     c = (offset - divisor) / 2 ;
-        // } else {
-        //     c = (offset - divisor) / 2 +1;
-        // }
-        
-        return key - 48;
+        return key - 36;
     }
 
     float calculateRatio(int index) {
@@ -218,27 +220,38 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
     }
 }
 
-processor NonFixedASR (float32 attackSeconds,
-                    float32 releaseSeconds)
+processor customEnvelope (float32 attackSeconds,
+                    float32 releaseSeconds, bool droneModeInit)
 {
     input event (std::notes::NoteOn,
                     std::notes::NoteOff) eventIn;
     input event float attackIn;
     input event float releaseIn;
+    input event bool droneModeIn;
 
     output stream float gainOut;
 
     //==============================================================================
     float keyDownVelocity, currentLevel;
     float attack = attackSeconds, release = releaseSeconds;
+    bool droneMode = droneModeInit;
+    bool envOn = true;
 
-    event eventIn (std::notes::NoteOn noteOn)        { keyDownVelocity = noteOn.velocity; }
-    event eventIn (std::notes::NoteOff noteOff)      { keyDownVelocity = 0; }
+
+    event eventIn (std::notes::NoteOn noteOn) {
+        keyDownVelocity = noteOn.velocity; 
+    }
+    event eventIn (std::notes::NoteOff noteOff) {
+        keyDownVelocity = 0; 
+    }
     event attackIn (float v) {
         attack = v;
     }
     event releaseIn (float v) {
         release = v;
+    }
+    event droneModeIn (bool b) {
+        droneMode = b;
     }
 
     void main()
@@ -287,7 +300,217 @@ processor NonFixedASR (float32 attackSeconds,
     }
 }
 
+        // at the moment we use voice stealing
+    processor customVoiceAllocator (int numVoices,
+                              int MPEMasterChannel = 0, bool droneModeInit = false)
+    {
+        //==============================================================================
+        input event (std::notes::NoteOn,
+                     std::notes::NoteOff,
+                     std::notes::PitchBend,
+                     std::notes::Slide,
+                     std::notes::Pressure,
+                     std::notes::Control)    eventIn;
+
+        output event (std::notes::NoteOn,
+                      std::notes::NoteOff,
+                      std::notes::PitchBend,
+                      std::notes::Slide,
+                      std::notes::Pressure,
+                      std::notes::Control)   voiceEventOut[numVoices];
+        input event bool droneModeIn;
+
+        //==============================================================================
+        event eventIn (std::notes::NoteOn noteOn)
+        {
+            if (droneMode) {
+                let oldest = findOldestIndex();
+                //see if it's already on somewhere and toggle it
+                for (int i = 0;i<numVoices; i++) {
+                    //if it's already on
+
+                    if(noteOn.pitch == voiceState[i].pitch) {
+                        //toggle
+                        if(voiceState[i].isActive) {
+                            voiceEventOut[i] <-  std::notes::NoteOff (voiceState[i].channel, voiceState[i].pitch,0.0f); 
+                            voiceState[i].free();
+                            return;
+                        }
+                    } 
+                }
+
+                //otherwise just turn on another note
+                voiceState[oldest].start (noteOn.channel, noteOn.pitch);
+                voiceEventOut[oldest] <- noteOn;
 
 
+            } else {
+                let oldest = findOldestIndex();
 
+                // send a note-off when stealing a voice
+                if (voiceState[oldest].isActive)
+                
+                voiceEventOut[oldest] <- std::notes::NoteOff (voiceState[oldest].channel, voiceState[oldest].pitch,0.0f);
 
+                voiceState[oldest].start (noteOn.channel, noteOn.pitch);
+
+                voiceEventOut[oldest] <- noteOn;
+            }
+
+        }
+
+        event eventIn (std::notes::NoteOff noteOff)
+        {
+            if (droneMode) {
+                //do nothing
+            } else {
+                for (wrap<numVoices> i)
+                {
+                    //IF THE STATE MATCHES 
+                    if (voiceState[i].channel == noteOff.channel
+                        && voiceState[i].pitch == noteOff.pitch)
+                    {
+                        if (isSustainActive (noteOff.channel))
+                        {
+                            voiceState[i].isReleasing = true;
+                        }
+                        else
+                        {
+                            voiceEventOut[i] <- noteOff;
+                            voiceState[i].free();
+                        }
+                    }
+                }
+            }
+        }
+
+        event eventIn (std::notes::PitchBend bend)
+        {
+            for (wrap<numVoices> i)
+                if (voiceState[i].channel == bend.channel)
+                    voiceEventOut[i] <- bend;
+        }
+
+        event eventIn (std::notes::Pressure pressure)
+        {
+            for (wrap<numVoices> i)
+                if (voiceState[i].channel == pressure.channel)
+                    voiceEventOut[i] <- pressure;
+        }
+
+        event eventIn (std::notes::Slide slide)
+        {
+            for (wrap<numVoices> i)
+                if (voiceState[i].channel == slide.channel)
+                    voiceEventOut[i] <- slide;
+        }
+
+        event eventIn (std::notes::Control control)
+        {
+            if (control.control == 64) // 64 = sustain
+            {
+                bool isMPEMasterChannel = control.channel == MPEMasterChannel;
+                bool sustainActive = control.value >= 0.5f;
+
+                setChannelSustain (control.channel, sustainActive);
+
+                if (isMPEMasterChannel)
+                    mpeMasterSustainActive = sustainActive;
+
+                if (! sustainActive)
+                {
+                    for (wrap<numVoices> i)
+                    {
+                        if ((isMPEMasterChannel || voiceState[i].channel == control.channel)
+                             && voiceState[i].isActive
+                             && voiceState[i].isReleasing)
+                        {
+                            voiceEventOut[i] <- std::notes::NoteOff (voiceState[i].channel, voiceState[i].pitch,0.0f);
+                            voiceState[i].free();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (wrap<numVoices> i)
+                    if (voiceState[i].channel == control.channel)
+                        voiceEventOut[i] <- control;
+            }
+        }
+
+        event droneModeIn (bool d) {
+            droneMode = d;
+        }
+
+        //==============================================================================
+        struct VoiceState
+        {
+            bool isActive, isReleasing;
+            int32 channel, age;
+            float32 pitch;
+
+            void start (int32 channel, float32 pitch)
+            {
+                this.isActive     = true;
+                this.isReleasing  = false;
+                this.channel      = channel;
+                this.pitch        = pitch;
+                this.age          = ++nextActiveTime;
+            }
+
+            void free()
+            {
+                this.isActive  = false;
+                this.age       = ++nextInactiveTime;
+            }
+        }
+
+        static_assert (numVoices > 0);
+        VoiceState[numVoices] voiceState;
+
+        int32 nextActiveTime = 0x70000000, nextInactiveTime = 1;
+
+        bool mpeMasterSustainActive;
+        int64 perChannelSustainActive; // one per bit (assumes that channel IDs are <64, and could be made more general)
+        bool droneMode = droneModeInit;
+
+        bool isSustainActive (int32 channel)
+        {
+            return mpeMasterSustainActive || (perChannelSustainActive & (1L << channel)) != 0;
+        }
+
+        void setChannelSustain (int32 channel, bool active)
+        {
+            if (active)
+                perChannelSustainActive |= (1L << channel);
+            else
+                perChannelSustainActive &= ~(1L << channel);
+        }
+
+        wrap<numVoices> findOldestIndex()
+        {
+            if const (numVoices == 1)
+            {
+                return 0;
+            }
+            else
+            {
+                wrap<numVoices> index;
+                var oldest = voiceState[0].age;
+
+                for (wrap<numVoices> i = 1)
+                {
+                    let age = voiceState[i].age;
+
+                    if (age < oldest)
+                    {
+                        index = i;
+                        oldest = age;
+                    }
+                }
+
+                return index;
+            }
+        }
+    }

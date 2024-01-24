@@ -44,4 +44,6 @@ hoisted endpoints don't work for arrays
 
 for holdmode we ignore all noteoff events, turning noteon into a toggle
 
+the voice allocator doesn't work with droneMode in the way that I intend
 
+not sure yet if I can use a button to turn off all voices
