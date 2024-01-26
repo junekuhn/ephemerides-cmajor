@@ -8,14 +8,28 @@ divisoer, num, denom inputs
 4. portamento
 attack and release 
 base note selection and quantization
-
-hold
+holds
+step functions for sliders for whole numbers
+anything that's not keyboard should be accessible via MIDI CC 
+protection against negative/zero frequencies
+release button
 6. interface development
+presets!!
+tidalcycles sequencing
 
+midi CC
+vol - 0
+shape - 1
+adsr - 2, 3, 4, 5
+algo - 6
+num/denom/div - 7,8,9
+glide - 10
+base - 11
+drone - 12
 
 other potential features 
 - over C / Under C / etc. 
-- quantisation of base frequency 
+- quantisation of base frequency - done
 
 
 
@@ -47,3 +61,8 @@ for holdmode we ignore all noteoff events, turning noteon into a toggle
 the voice allocator doesn't work with droneMode in the way that I intend
 
 not sure yet if I can use a button to turn off all voices
+
+cmajor patches don't by default export interfaces
+
+build 
+/Users/mx/code/JUCE/JUCE

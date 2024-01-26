@@ -14,14 +14,14 @@ graph Microtones [[main]]
     // input wave.frequencyIn;
     input event std::midi::Message midiIn;
     // input event (std::notes::NoteOn, std::notes::NoteOff) eventIn;
-    input event float32 myShape [[ name: "shape", min: 0, max: 4, init: 0]];
+    input event float32 myShape [[ name: "shape", min: 0, max: 4, init: 0, step: 1, text: "Sine|Square|Saw|Triangle"]];
     input event int algorithmSelect [[ name: "algo", text: "Arithmetic|Ratio|Tet"]];
-    input event int topValue [[ name: "Numerator", min: 1, max: 24, init: 2]];
-    input event  int bottomValue [[ name: "Denominator", min: 1, max: 24, init: 1]];
-    input event int divisor [[ name: "Divisor", min: 2, max: 24, init: 12]];
-    input event float glide [[ name: "Glide", min: 0.01, max: 1, init: 0]];
-    input event float baseFrequency [[ name: "Base Frequency", min: 110, max: 880, init: 220]];
-    input event bool droneMode [[ name: "Drone Mode", init: false]];
+    input event int topValue [[ name: "Numerator", min: 1, max: 24, init: 2, step: 1]];
+    input event  int bottomValue [[ name: "Denominator", min: 1, max: 24, init: 1, step: 1]];
+    input event int divisor [[ name: "Divisor", min: 2, max: 24, init: 12, step: 1]];
+    input event float glide [[ name: "Glide", min: 1, max: 100, init: 0.1, step: 1]];
+    input event float baseFrequency [[ name: "Base Frequency", min: 0, max: 127, init: 10, step: 1]];
+    input event bool droneMode [[ name: "Drone Mode", init: false, step:1]];
 
     //asdr
     input event float attack [[ name: "Attack", min: 0.01, max: 0.25, init: 0.1 ]];
@@ -69,6 +69,7 @@ graph Microtones [[main]]
 
 graph Voice {
     input event (std::notes::NoteOn, std::notes::NoteOff) notesIn;
+    input event (std::notes::Control) controlIn;
     //there's like an inheritance thing going on / polymorphism?
     input event float32 shape;
     input event int algoIn;
@@ -79,7 +80,6 @@ graph Voice {
     input event float attackIn;
     input event float releaseIn;
     input event float baseFrequencyIn;
-    input event bool droneModeIn;
     // wave.shapeIn;
     output stream float out;
     
@@ -87,7 +87,7 @@ graph Voice {
 
     node {
         //envelope
-        env = customEnvelope( 0.1f, 0.8f, false ); 
+        env = customEnvelope( 0.1f, 0.8f ); 
         // freqCalculator = FreqCalculator;
         wave = std::oscillators::PolyblepOscillator (float, std::oscillators::Shape::sine, 440);
         // calculator = freqCalculator(E::Algorithm::Arithmetic);
@@ -97,6 +97,7 @@ graph Voice {
         notesIn -> env.eventIn;
 
         notesIn -> freqCalculator.eventIn;
+        controlIn -> freqCalculator.controlIn;
         algoIn -> freqCalculator.algoIn;
         numeratorIn -> freqCalculator.numeratorIn;
         denominatorIn -> freqCalculator.denominatorIn;
@@ -106,7 +107,6 @@ graph Voice {
 
         attackIn -> env.attackIn;
         releaseIn -> env.releaseIn;
-        droneModeIn -> env.droneModeIn;
 
         shape -> wave.shapeIn;
         freqCalculator.out -> wave.frequencyIn;
@@ -116,6 +116,7 @@ graph Voice {
 
 processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
     input event std::notes::NoteOn eventIn;
+    input event std::notes::Control controlIn;
     input event int algoIn;
     input event int numeratorIn;
     input event int denominatorIn;
@@ -129,6 +130,25 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
         index = displaceIndex(int (e.pitch));
         ratio = calculateRatio(index);
         console <- calculateFrequency(ratio);
+    }
+
+    event controlIn (std::notes::Control e) {
+        if (e.control == 6) { //algo
+            if(e.value < 0.33) {algo = E::Algorithm::Arithmetic;}
+            else if(e.value < 0.66) {algo == E::Algorithm::Ratio;}
+            else {algo == E::Algorithm::Tet;}
+        } else if (e.control == 7) { // numerator
+            topValue = int(ceil(e.value * 24));
+        } else if (e.control == 8) { // denominator 
+            bottomValue = int(ceil(e.value * 24));
+        } else if (e.control == 9) { // divisor 
+            divisor = int( ceil(e.value * 23) + 1);
+        } else if (e.control == 10) { //glide 
+            glide = ceil(e.value * 100);
+        } else if (e.control == 11) { //base freq
+            baseFrequency = std::notes::noteToFrequency(int(floor(e.value * 128)));
+        } 
+        ratio = calculateRatio(index);
     }
 
     event algoIn (int newAlgo) {
@@ -160,7 +180,7 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
         ratio = calculateRatio(index);
     }
     event baseFrequencyIn (float n) {
-        baseFrequency = n;
+        baseFrequency = std::notes::noteToFrequency(n);
         ratio = calculateRatio(index);
     }
 
@@ -170,7 +190,7 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
     float baseFrequency = 220;
     const int center = 60; //c3
     float ratio = 1;
-    float glide = 0.01f;
+    float glide = 1;
     int index = 60;
     E::Algorithm algo = initAlgo;
     
@@ -208,12 +228,15 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
         float freq = 0;
 
         loop {
-            
+            //safeguarding
+            if (freq < 0) {freq = 0;}
+
+            //write to output
             out <- freq;
 
             // GLIDE
             float difference = calculateFrequency(ratio) - freq;
-            freq += 0.001f * glide * difference ;
+            freq += 0.001f * difference / glide ;
 
             advance();
         }
@@ -221,7 +244,7 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
 }
 
 processor customEnvelope (float32 attackSeconds,
-                    float32 releaseSeconds, bool droneModeInit)
+                    float32 releaseSeconds)
 {
     input event (std::notes::NoteOn,
                     std::notes::NoteOff) eventIn;
@@ -234,7 +257,6 @@ processor customEnvelope (float32 attackSeconds,
     //==============================================================================
     float keyDownVelocity, currentLevel;
     float attack = attackSeconds, release = releaseSeconds;
-    bool droneMode = droneModeInit;
     bool envOn = true;
 
 
@@ -249,9 +271,6 @@ processor customEnvelope (float32 attackSeconds,
     }
     event releaseIn (float v) {
         release = v;
-    }
-    event droneModeIn (bool b) {
-        droneMode = b;
     }
 
     void main()
@@ -326,7 +345,7 @@ processor customEnvelope (float32 attackSeconds,
             if (droneMode) {
                 let oldest = findOldestIndex();
                 //see if it's already on somewhere and toggle it
-                for (int i = 0;i<numVoices; i++) {
+                for (wrap<numVoices> i) {
                     //if it's already on
 
                     if(noteOn.pitch == voiceState[i].pitch) {
@@ -430,6 +449,9 @@ processor customEnvelope (float32 attackSeconds,
                         }
                     }
                 }
+            } 
+            else if (control.control == 12) { // droneMode
+                droneMode = control.value >= 0.5f;
             }
             else
             {
@@ -441,6 +463,11 @@ processor customEnvelope (float32 attackSeconds,
 
         event droneModeIn (bool d) {
             droneMode = d;
+
+            //turn off all voices if switching
+            for( wrap<numVoices> i) {
+                voiceEventOut[i] <- std::notes::NoteOff (voiceState[i].channel, voiceState[i].pitch,0.0f); 
+            }
         }
 
         //==============================================================================
