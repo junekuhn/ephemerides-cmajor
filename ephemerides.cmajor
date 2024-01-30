@@ -19,7 +19,7 @@ graph Microtones [[main]]
     input event int algorithmSelect [[ name: "algo", text: "Arithmetic|Ratio|Tet"]];
     input event int topValue [[ name: "Numerator", min: 1, max: 24, init: 2, step: 1]];
     input event  int bottomValue [[ name: "Denominator", min: 1, max: 24, init: 1, step: 1]];
-    input event int divisor [[ name: "Divisor", min: 2, max: 24, init: 12, step: 1]];
+    input event int divisor [[ name: "Divisor", min: 2, max: 24, init: 4, step: 1]];
     input event float glide [[ name: "Glide", min: 1, max: 100, init: 0.1, step: 1]];
     input event float baseFrequency [[ name: "Base Frequency", min: 0, max: 127, init: 10, step: 1]];
     input event bool droneMode [[ name: "Drone Mode", init: false, step:1]];
@@ -37,7 +37,7 @@ graph Microtones [[main]]
     //create oscillator
     // node wave = std::oscillators::PolyblepOscillator (float, std::oscillators::Shape::sine, 440);
     node gain = std::levels::SmoothedGain (float);
-    node myGain = myGain;
+    // node myGain = myGain;
     //envelope
     // node env = std::envelopes::FixedASR ( 0.1f, 0.8f );
     node voices = Voice[8];
@@ -61,19 +61,19 @@ graph Microtones [[main]]
         attack -> voices.attackIn;
         release -> voices.releaseIn;
         baseFrequency -> voices.baseFrequencyIn;
-        volume -> myGain.in;
+        // volume -> myGain.in;
 
         voices.out -> gain.in;
         gain.out-> out;
     }
 }
 
-processor myGain {
-    input event float in;
-    output stream float out;
+// processor myGain {
+//     input event float in;
+//     output stream float out;
 
-    node gain = std::levels::SmoothedGain (float);
-}
+//     node gain = std::levels::SmoothedGain (float);
+// }
 
 
 graph Voice {

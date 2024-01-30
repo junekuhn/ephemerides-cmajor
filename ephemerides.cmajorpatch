@@ -6,6 +6,13 @@
     "name":             "Ephemerides",
     "description":      "Microtonal Synthesizer",
     "manufacturer":     "Junebug Codes",
+    "category":         "generator",
     "isInstrument":     true,
-    "source":           "Ephemerides.cmajor"
+    "source":           "Ephemerides.cmajor",
+    "view": {
+        "src":       "view/index.js",
+        "width":     900,
+        "height":    700,
+        "resizable": true
+      }
 }

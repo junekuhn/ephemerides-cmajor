@@ -75,3 +75,10 @@ separate glide for ratio stuff vs midi notes
 
 gui doesn't update when midi CC goes down 
 is that a problem with the default config
+
+Custom GUI notes 
+I'm having issues loading html, apparently a bad mime type 
+I also can't get the custom gui example to load in reaper 
+
+connectedCallback(): called each time the element is added to the document. The specification recommends that, as far as possible, developers should implement custom element setup in this callback rather than the constructor.
+disconnectedCallback(): called each time the element is removed from the document.
