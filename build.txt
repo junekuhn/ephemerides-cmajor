@@ -66,3 +66,12 @@ cmajor patches don't by default export interfaces
 
 build 
 /Users/mx/code/JUCE/JUCE
+
+notes from subphonics
+swell is essential
+pitch bend would be really useful
+control with a volume pedal is essential 
+separate glide for ratio stuff vs midi notes 
+
+gui doesn't update when midi CC goes down 
+is that a problem with the default config
