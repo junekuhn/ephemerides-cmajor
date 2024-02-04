@@ -1,10 +1,10 @@
-
+import * as midi from "/cmaj_api/cmaj-midi-helpers.js"
 
 /*
     This simple web component just manually creates a set of plain sliders for the
     known parameters, and uses some listeners to connect them to the patch.
 */
-class Ephemerides_View extends HTMLElement
+class ephemerides_View extends HTMLElement
 {
     constructor (patchConnection)
     {
@@ -12,6 +12,8 @@ class Ephemerides_View extends HTMLElement
         this.patchConnection = patchConnection;
         this.classList = "main-view-element";
         this.innerHTML = this.getHTML();
+        console.log ("MIDI message: " + midi.getMIDIDescription (0x924030));
+
     }
 
     connectedCallback()
@@ -19,25 +21,34 @@ class Ephemerides_View extends HTMLElement
         // When the HTMLElement is shown, this is a good place to connect
         // any listeners you need to the PatchConnection object..
 
-        // First, find our frequency slider:
-        const freqSlider = this.querySelector ("#frequency");
+        // First, find our divisorInput slider:
+        const divisorInput = this.querySelector ("#divisorInput");
 
         // When the slider is moved, this will cause the new value to be sent to the patch:
-        freqSlider.oninput = () => this.patchConnection.sendEventOrValue (freqSlider.id, freqSlider.value);
+        divisorInput.onchange = () => {
+            this.patchConnection.sendEventOrValue ("divisor", divisorInput.value);
+            console.log("sending", divisorInput.value)
+            this.patchConnection.sendEventOrValue("myShape", 2);
+        }
 
-        // Create a listener for the frequency endpoint, so that when it changes, we update our slider..
-        this.freqListener = value => freqSlider.value = value;
-        this.patchConnection.addParameterListener (freqSlider.id, this.freqListener);
+
+        // Create a listener for the divisorInput endpoint, so that when it changes, we update our slider..
+        this.divisorListener = value => divisorInput.value = value;
+        this.patchConnection.addParameterListener ("Divisor", this.divisorListener);
 
         // Now request an initial update, to get our slider to show the correct starting value:
-        this.patchConnection.requestParameterValue (freqSlider.id);
+        this.patchConnection.requestParameterValue ("Divisor");
+        
+
+
+
     }
 
     disconnectedCallback()
     {
         // When our element is removed, this is a good place to remove
         // any listeners that you may have added to the PatchConnection object.
-        this.patchConnection.removeParameterListener ("frequency", this.freqListener);
+        this.patchConnection.removeParameterListener ("Divisor", this.divisorListener);
     }
 
     getHTML()
@@ -52,22 +63,83 @@ class Ephemerides_View extends HTMLElement
                 padding: 10px;
                 overflow: auto;
             }
-
+        
             .param {
                 display: inline-block;
                 margin: 10px;
                 width: 300px;
             }
+        
+            /* overall stuff */
+            section {
+                color: white;
+            }
+        
+            /* classes */
+            .panel {
+                border: 1px solid #fff;
+                border-radius: 5px;
+                margin: 0px;
+                padding: 15px;
+            }
+        
+            .hflex {
+                display: flex;
+                flex-direction: row;
+            }
+            /* individual elements */
+            #outerContainer {
+                height: 100%;
+                max-width: 1200px;
+                min-height: 700px;
+                background-image: url('./Untitled.png');
+                background-position: 50%;
+                background-repeat: repeat;
+                background-size: cover;
+                background-attachment: scroll;
+                border-radius: 0;
+            }
+            
         </style>
 
-        <div id="controls">
-          <p>Your GUI goes here!</p>
-          <input type="range" class="param" id="frequency" min="5" max="1000">Frequency</input>
-        </div>`;
+        <div id="outerContainer">
+            <section id="headerSection">
+                <div class="hflex">
+                    <div class="panel">
+                        <label for="algorithmSelect">Algorithm</label>
+                        <select id="algorithmSelect"></select>
+                    </div>
+                    <div>
+                        <h1>Ephemerides</h1>
+                    </div>
+                    <div class="panel">
+                        <label for="divisorInput">Divisor</label>
+                        <input id="divisorInput" type="range" min="2" max="24" step="1"></input>
+                    </div>
+                </div>
+            </section>
+            <section id="ephemeridesSection"></section>
+            <section id="synthSection"></section>
+        </div>  
+        `;
     }
+
+    onPatchStatusChanged = function (buildError, manifest, inputEndpoints, outputEndpoints)
+    {
+        if (buildError)
+            status_message.innerHTML = escapeHTML (buildError);
+        else
+            status_message.innerHTML = "";
+
+        console.log("patchStatusChanged")
+
+        // refreshTitle (manifest);
+        // refreshInputControls (inputEndpoints);
+        // refreshOutputControls (outputEndpoints);
+    };
 }
 
-window.customElements.define ("Ephemerides-view", Ephemerides_View);
+window.customElements.define ("ephemerides-view", ephemerides_View);
 
 /* This is the function that a host (the command line patch player, or a Cmajor plugin
    loader, or our VScode extension, etc) will call in order to create a view for your patch.
@@ -78,5 +150,5 @@ window.customElements.define ("Ephemerides-view", Ephemerides_View);
 */
 export default function createPatchView (patchConnection)
 {
-    return new Ephemerides_View (patchConnection);
+    return new ephemerides_View (patchConnection);
 }
