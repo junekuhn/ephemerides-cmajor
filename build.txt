@@ -82,3 +82,21 @@ I also can't get the custom gui example to load in reaper
 
 connectedCallback(): called each time the element is added to the document. The specification recommends that, as far as possible, developers should implement custom element setup in this callback rather than the constructor.
 disconnectedCallback(): called each time the element is removed from the document.
+
+from jules:
+
+Our first approach was to make the view a .html file, but it just didn't work for all the use-cases we want to support, like web-audio plugins.  We need there to be a javascript object that the host can interact with, and embed into different types of container DOM element.
+We figured that if people really need to use a piece of html, they can create and return an IFrameHTMLElement. That's the same result as if our host created the IFrameHTMLElement and loaded your html into it.
+
+Iframe method:
+
+export default function createCustomPatchView(patchConnection) {
+  const iframe = document.createElement('iframe');
+  iframe.src = './index.html';
+  iframe.setAttribute("style", "width:100vw");
+  return iframe;
+}
+
+cannot access uninitialized variables
+trying my best to use vanilla js 
+it's not going smoothly

@@ -1,4 +1,4 @@
-import * as midi from "/cmaj_api/cmaj-midi-helpers.js"
+import * as midi from "/cmaj_api/cmaj-midi-helpers.js";
 
 /*
     This simple web component just manually creates a set of plain sliders for the
@@ -11,36 +11,13 @@ class ephemerides_View extends HTMLElement
         super();
         this.patchConnection = patchConnection;
         this.classList = "main-view-element";
-        this.innerHTML = this.getHTML();
+        // this.innerHTML = this.getHTML();
         console.log ("MIDI message: " + midi.getMIDIDescription (0x924030));
-
     }
 
     connectedCallback()
-    {
-        // When the HTMLElement is shown, this is a good place to connect
-        // any listeners you need to the PatchConnection object..
-
-        // First, find our divisorInput slider:
-        const divisorInput = this.querySelector ("#divisorInput");
-
-        // When the slider is moved, this will cause the new value to be sent to the patch:
-        divisorInput.onchange = () => {
-            this.patchConnection.sendEventOrValue ("divisor", divisorInput.value);
-            console.log("sending", divisorInput.value)
-            this.patchConnection.sendEventOrValue("myShape", 2);
-        }
-
-
-        // Create a listener for the divisorInput endpoint, so that when it changes, we update our slider..
-        this.divisorListener = value => divisorInput.value = value;
-        this.patchConnection.addParameterListener ("Divisor", this.divisorListener);
-
-        // Now request an initial update, to get our slider to show the correct starting value:
-        this.patchConnection.requestParameterValue ("Divisor");
-        
-
-
+    {  
+        this.addRadialSlider();
 
     }
 
@@ -51,77 +28,85 @@ class ephemerides_View extends HTMLElement
         this.patchConnection.removeParameterListener ("Divisor", this.divisorListener);
     }
 
-    getHTML()
+    async getHTML()
     {
-        return `
-        <style>
-            .main-view-element {
-                background: #bcb;
-                display: block;
-                width: 100%;
-                height: 100%;
-                padding: 10px;
-                overflow: auto;
-            }
-        
-            .param {
-                display: inline-block;
-                margin: 10px;
-                width: 300px;
-            }
-        
-            /* overall stuff */
-            section {
-                color: white;
-            }
-        
-            /* classes */
-            .panel {
-                border: 1px solid #fff;
-                border-radius: 5px;
-                margin: 0px;
-                padding: 15px;
-            }
-        
-            .hflex {
-                display: flex;
-                flex-direction: row;
-            }
-            /* individual elements */
-            #outerContainer {
-                height: 100%;
-                max-width: 1200px;
-                min-height: 700px;
-                background-image: url('./Untitled.png');
-                background-position: 50%;
-                background-repeat: repeat;
-                background-size: cover;
-                background-attachment: scroll;
-                border-radius: 0;
-            }
-            
-        </style>
+        const myhtml = await fetch('../component.html');
+        const text  = await myhtml.text();
+        return text;
+    }
 
-        <div id="outerContainer">
-            <section id="headerSection">
-                <div class="hflex">
-                    <div class="panel">
-                        <label for="algorithmSelect">Algorithm</label>
-                        <select id="algorithmSelect"></select>
-                    </div>
-                    <div>
-                        <h1>Ephemerides</h1>
-                    </div>
-                    <div class="panel">
-                        <label for="divisorInput">Divisor</label>
-                        <input id="divisorInput" type="range" min="2" max="24" step="1"></input>
-                    </div>
-                </div>
-            </section>
-            <section id="ephemeridesSection"></section>
-            <section id="synthSection"></section>
-        </div>  
-        `;
+    addRadialSlider() {
+
+        const radial = this.querySelector(".radialSlider");
+        const pointer = this.querySelector(".radialSlider line")
+        const inputElement= this.querySelector(".radialSlider input");
+        const svgElement = this.querySelector(".radialSlider svg");
+
+        let mouseStartY;
+        let dragging = false;
+        let newValue;
+        const minimum = 2;
+        const range = 22;
+        const  endDrag = (e) => {
+            if(dragging) dragging = false;
+            prevValue = newValue;
+        }
+
+        const clamp = (num, min, max) => Math.min(Math.max(num, min), max)
+        
+        const updateDial = (newValue) => {
+            const deg  =  newValue * 225 / range;
+            const percent = newValue * 0.75 / range;
+            pointer.style = `transform: rotateZ(${deg}deg)`;
+            svgElement.style = `filter: drop-shadow(0px 0px 20px rgb(255 255 255 / ${percent}))`;
+            this.patchConnection.sendEventOrValue ("divisor", inputElement.value);
+            console.log("sending", inputElement.value)
+        }
+
+        //init
+        let prevValue = inputElement.value - minimum;
+        updateDial(prevValue);
+
+
+        radial.addEventListener('mousemove', (e) => {
+            const offsetY = mouseStartY - e.clientY;
+            //let's say 10px is one unit
+            //take input value and adjust it
+            const newValueOffset  = Math.floor(offsetY * 0.4);
+            newValue = clamp(newValueOffset+prevValue, 0, range);
+            if(dragging){
+            updateDial(newValue);
+            inputElement.value = newValue + minimum;
+            }
+        });
+        
+        radial.addEventListener('mousedown', (e) => {
+            mouseStartY = e.clientY;
+            dragging = true;
+        })
+        
+        radial.addEventListener('mouseup', endDrag);
+        radial.addEventListener('mouseleave', endDrag);
+
+
+
+        
+
+        
+        // Create a listener for the divisorInput endpoint, so that when it changes, we update our slider..
+        this.divisorListener = value => inputElement.value = value;
+        this.patchConnection.addParameterListener ("Divisor", this.divisorListener);
+
+        // Now request an initial update, to get our slider to show the correct starting value:
+        this.patchConnection.requestParameterValue ("Divisor");
+        //if controlling from input
+        inputElement.addEventListener('change', (e) => {
+            prevValue = e.target.value - minimum;
+            updateDial(e.target.value - minimum); 
+            this.patchConnection.sendEventOrValue ("divisor", inputElement.value);
+            console.log("sending", inputElement.value)
+        })
+
     }
 
     onPatchStatusChanged = function (buildError, manifest, inputEndpoints, outputEndpoints)
@@ -148,7 +133,10 @@ window.customElements.define ("ephemerides-view", ephemerides_View);
    However, this function can be `async` if you need to perform asyncronous tasks, such as
    fetching remote resources for use in the view, before completing.
 */
-export default function createPatchView (patchConnection)
+export default async function createPatchView (patchConnection)
 {
-    return new ephemerides_View (patchConnection);
+    const myView = new ephemerides_View (patchConnection);
+    myView.innerHTML = await myView.getHTML();
+    // myView.addInteractivity();
+    return myView;
 }
