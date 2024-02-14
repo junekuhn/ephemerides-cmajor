@@ -119,7 +119,11 @@
             <div class="panel">
                 <label for="algorithmSelect">Algorithm</label>
                 <div class="selectContainer">
-                    <select id="algorithmSelect"></select>
+                    <select id="algorithmSelect">
+                        <option value="0">Arithmetic</option>
+                        <option value="1">Ratio</option>
+                        <option value="2">Tet</option>
+                    </select>
                 </div>
             </div>
             <div>
@@ -135,7 +139,49 @@
             </div> 
         </div>
     </section>
-    <section id="ephemeridesSection"></section>
-    <section id="synthSection"></section>
+    <section id="ephemeridesSection">
+        <div class="hflex">
+            <div class="panel vflex">
+                <div>
+                    <h2>Reference</h2>
+                </div>
+                <div class="panel">
+                    <h3>1</h3>
+                    <hr/>
+                    <h3>1</h3>
+                </div>
+                <div class="panel">
+                    <p>MIDI Listen</p>
+                    <p>C3</p>
+                </div>
+            </div>
+            <div class="panel grid">
+            </div>
+            <div class="panel vflex">
+                <div>
+                    <h2>Numerator</h2>
+                </div>
+                <div class="panel">
+                    <h3>1</h3>
+                    <hr/>
+                    <h3>1</h3>
+                </div>
+                <div>
+                    <h2>Denominator</h2>
+                </div>
+                <div class="panel">
+                    <p>A3</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="synthSection">
+        <div class="hflex">
+            <div class="panel">
+                <label for="volume">Volume</label>
+                <input id="volume" type="number" min="0" max="1" step="0.01" value="0.7"/>
+            </div>
+        </div>
+    </section>
 </div>
 

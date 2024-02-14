@@ -19,13 +19,31 @@ class ephemerides_View extends HTMLElement
     {  
         this.addRadialSlider();
 
+        //get algo element
+        const algoSelectElement = this.querySelector('#algorithmSelect');
+
+
+        //the the value is changed by midi for example
+        this.algoListener = value => algoSelectElement.value = value;
+        this.patchConnection.addParameterListener("algorithmSelect", this.algoListener);
+
+        algoSelectElement.addEventListener('change', (e) => {
+            console.log("sending " + algoSelectElement.value )
+            this.patchConnection.sendEventOrValue("algorithmSelect", algoSelectElement.value);
+        })
+
+
+
+
+
     }
 
     disconnectedCallback()
     {
         // When our element is removed, this is a good place to remove
         // any listeners that you may have added to the PatchConnection object.
-        this.patchConnection.removeParameterListener ("Divisor", this.divisorListener);
+        this.patchConnection.removeParameterListener("divisor", this.divisorListener);
+        this.patchConnection.removeParameterListener("algorithmSelect", this.algoListener);
     }
 
     async getHTML()
@@ -95,10 +113,10 @@ class ephemerides_View extends HTMLElement
         
         // Create a listener for the divisorInput endpoint, so that when it changes, we update our slider..
         this.divisorListener = value => inputElement.value = value;
-        this.patchConnection.addParameterListener ("Divisor", this.divisorListener);
+        this.patchConnection.addParameterListener ("divisor", this.divisorListener);
 
         // Now request an initial update, to get our slider to show the correct starting value:
-        this.patchConnection.requestParameterValue ("Divisor");
+        this.patchConnection.requestParameterValue("divisor");
         //if controlling from input
         inputElement.addEventListener('change', (e) => {
             prevValue = e.target.value - minimum;
