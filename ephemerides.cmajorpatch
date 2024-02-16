@@ -11,8 +11,8 @@
     "source":           "Ephemerides.cmajor",
     "view": {
         "src":       "view/index.js",
-        "width":     900,
-        "height":    700,
+        "width":     1000,
+        "height":    800,
         "resizable": true
       }
 }

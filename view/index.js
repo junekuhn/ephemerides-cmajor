@@ -17,13 +17,17 @@ class ephemerides_View extends HTMLElement
 
     connectedCallback()
     {  
-        this.addRadialSlider();
+
+        const divisorSlider = this.querySelector("#divisorSlider");
+        const volumeSlider = this.querySelector("#volumeSlider");
+
+        this.addRadialSlider(divisorSlider, "divisor");
+        this.addRadialSlider(volumeSlider, "volume");
 
         //get algo element
         const algoSelectElement = this.querySelector('#algorithmSelect');
 
-
-        //the the value is changed by midi for example
+        //if the value is changed by midi for example
         this.algoListener = value => algoSelectElement.value = value;
         this.patchConnection.addParameterListener("algorithmSelect", this.algoListener);
 
@@ -31,9 +35,6 @@ class ephemerides_View extends HTMLElement
             console.log("sending " + algoSelectElement.value )
             this.patchConnection.sendEventOrValue("algorithmSelect", algoSelectElement.value);
         })
-
-
-
 
 
     }
@@ -53,18 +54,21 @@ class ephemerides_View extends HTMLElement
         return text;
     }
 
-    addRadialSlider() {
+    addRadialSlider(radial, endpoint) {
 
-        const radial = this.querySelector(".radialSlider");
-        const pointer = this.querySelector(".radialSlider line")
-        const inputElement= this.querySelector(".radialSlider input");
-        const svgElement = this.querySelector(".radialSlider svg");
+        //assuming a certain html structure
+        const pointer = radial.querySelector("line")
+        const inputElement= radial.querySelector("input");
+        const svgElement = radial.querySelector("svg");
 
         let mouseStartY;
         let dragging = false;
         let newValue;
-        const minimum = 2;
-        const range = 22;
+        const minimum = inputElement.min;
+        const range = inputElement.max - inputElement.min;
+        const height = 100;
+        const scalingFactor = range / height;
+
         const  endDrag = (e) => {
             if(dragging) dragging = false;
             prevValue = newValue;
@@ -73,11 +77,12 @@ class ephemerides_View extends HTMLElement
         const clamp = (num, min, max) => Math.min(Math.max(num, min), max)
         
         const updateDial = (newValue) => {
+            console.log(newValue)
             const deg  =  newValue * 225 / range;
             const percent = newValue * 0.75 / range;
             pointer.style = `transform: rotateZ(${deg}deg)`;
             svgElement.style = `filter: drop-shadow(0px 0px 20px rgb(255 255 255 / ${percent}))`;
-            this.patchConnection.sendEventOrValue ("divisor", inputElement.value);
+            this.patchConnection.sendEventOrValue(endpoint, inputElement.value);
             console.log("sending", inputElement.value)
         }
 
@@ -90,11 +95,12 @@ class ephemerides_View extends HTMLElement
             const offsetY = mouseStartY - e.clientY;
             //let's say 10px is one unit
             //take input value and adjust it
-            const newValueOffset  = Math.floor(offsetY * 0.4);
+           
+            const newValueOffset  = Math.floor(offsetY * scalingFactor);
             newValue = clamp(newValueOffset+prevValue, 0, range);
             if(dragging){
-            updateDial(newValue);
-            inputElement.value = newValue + minimum;
+                inputElement.value = newValue + minimum;
+                updateDial(newValue);
             }
         });
         
@@ -106,23 +112,18 @@ class ephemerides_View extends HTMLElement
         radial.addEventListener('mouseup', endDrag);
         radial.addEventListener('mouseleave', endDrag);
 
-
-
-        
-
-        
         // Create a listener for the divisorInput endpoint, so that when it changes, we update our slider..
-        this.divisorListener = value => inputElement.value = value;
-        this.patchConnection.addParameterListener ("divisor", this.divisorListener);
+        this.radialListener = value => inputElement.value = value;
+        this.patchConnection.addParameterListener (endpoint, this.radialListener);
 
         // Now request an initial update, to get our slider to show the correct starting value:
-        this.patchConnection.requestParameterValue("divisor");
+        this.patchConnection.requestParameterValue(endpoint);
         //if controlling from input
         inputElement.addEventListener('change', (e) => {
             prevValue = e.target.value - minimum;
             updateDial(e.target.value - minimum); 
-            this.patchConnection.sendEventOrValue ("divisor", inputElement.value);
-            console.log("sending", inputElement.value)
+            // this.patchConnection.sendEventOrValue (endpoint, inputElement.value);
+            // console.log("sending", inputElement.value)
         })
 
     }
