@@ -100,3 +100,11 @@ export default function createCustomPatchView(patchConnection) {
 cannot access uninitialized variables
 trying my best to use vanilla js 
 it's not going smoothly
+
+now it's going well 
+
+___ ongoing todo ____
+for sustain, looks like it involves midi, do that later
+shape listener is acting up for some reason
+generate midi reference in cmajor 
+

@@ -17,12 +17,23 @@ class ephemerides_View extends HTMLElement
 
     connectedCallback()
     {  
+        const clamp = (num, min, max) => Math.min(Math.max(num, min), max)
 
         const divisorSlider = this.querySelector("#divisorSlider");
         const volumeSlider = this.querySelector("#volumeSlider");
+        const attackSlider = this.querySelector("#attackSlider");
+        const sustainSlider = this.querySelector("#sustainSlider");
+        const releaseSlider = this.querySelector("#releaseSlider");
+        const glideSlider = this.querySelector("#glideSlider");
 
         this.addRadialSlider(divisorSlider, "divisor");
         this.addRadialSlider(volumeSlider, "volume");
+        this.addRadialSlider(attackSlider, "attack", 2);
+        this.addRadialSlider(sustainSlider, "sustain", 2)
+        this.addRadialSlider(releaseSlider, "release", 2);
+        this.addRadialSlider(glideSlider, "glide");
+
+        
 
         //get algo element
         const algoSelectElement = this.querySelector('#algorithmSelect');
@@ -34,8 +45,38 @@ class ephemerides_View extends HTMLElement
         algoSelectElement.addEventListener('change', (e) => {
             console.log("sending " + algoSelectElement.value )
             this.patchConnection.sendEventOrValue("algorithmSelect", algoSelectElement.value);
+            this.updateEphemeris();
         })
 
+        //get shape element
+        const shapeSelectElement = this.querySelector('#shapeSelect');
+
+        //if the value is changed by midi for example
+        //idk why but the value is 4/3 the correct value
+        // this.shapeListener = value => shapeSelectElement.value = (value * 3/4);
+        this.patchConnection.addParameterListener("myShape", this.shapeListener);
+
+        shapeSelectElement.addEventListener('change', (e) => {
+            console.log("sending " + shapeSelectElement.value )
+            this.patchConnection.sendEventOrValue("myShape", shapeSelectElement.value);
+        })
+
+        //numerator and denominator
+        const topValueElement = this.querySelector('#topValue');
+        const bottomValueElement = this.querySelector('#bottomValue');
+
+        this.topValueListener = value => topValueElement.value = Math.floor(value);
+        this.bottomValueListener = value => bottomValueElement.value = Math.floor(value);
+
+        this.patchConnection.addParameterListener("topValue", this.topValueListener);
+        this.patchConnection.addParameterListener("bottomValue", this.bottomValueListener);
+
+        topValueElement.addEventListener("change", (e) => {
+            this.patchConnection.sendEventOrValue("topValue", topValueElement.value);
+        })
+        bottomValueElement.addEventListener("change", (e) => {
+            this.patchConnection.sendEventOrValue("bottomValue", bottomValueElement.value);
+        });
 
     }
 
@@ -45,6 +86,9 @@ class ephemerides_View extends HTMLElement
         // any listeners that you may have added to the PatchConnection object.
         this.patchConnection.removeParameterListener("divisor", this.divisorListener);
         this.patchConnection.removeParameterListener("algorithmSelect", this.algoListener);
+        this.patchConnection.removeParameterListener("myShape", this.shapeListener);
+        //this is an issue
+        this.patchConnection.removeParameterListener("volume", this.radialListener);
     }
 
     async getHTML()
@@ -54,19 +98,19 @@ class ephemerides_View extends HTMLElement
         return text;
     }
 
-    addRadialSlider(radial, endpoint) {
+    addRadialSlider(radial, endpoint, step=0) {
 
         //assuming a certain html structure
         const pointer = radial.querySelector("line")
         const inputElement= radial.querySelector("input");
         const svgElement = radial.querySelector("svg");
 
-        let mouseStartY;
+        let mouseStartY = 0;
         let dragging = false;
         let newValue;
-        const minimum = inputElement.min;
-        const range = inputElement.max - inputElement.min;
-        const height = 100;
+        const minimum = parseFloat(inputElement.min);
+        const range = parseFloat(inputElement.max) - parseFloat(inputElement.min);
+        const height = 80;
         const scalingFactor = range / height;
 
         const  endDrag = (e) => {
@@ -84,6 +128,10 @@ class ephemerides_View extends HTMLElement
             svgElement.style = `filter: drop-shadow(0px 0px 20px rgb(255 255 255 / ${percent}))`;
             this.patchConnection.sendEventOrValue(endpoint, inputElement.value);
             console.log("sending", inputElement.value)
+
+            if(endpoint == "divisor") {
+                this.updateEphemeris();
+            }
         }
 
         //init
@@ -96,9 +144,14 @@ class ephemerides_View extends HTMLElement
             //let's say 10px is one unit
             //take input value and adjust it
            
-            const newValueOffset  = Math.floor(offsetY * scalingFactor);
+            const newValueOffset  = offsetY * scalingFactor;
+
+            //clamp and rounding functions
             newValue = clamp(newValueOffset+prevValue, 0, range);
+            newValue = parseFloat(newValue.toFixed(step));
+
             if(dragging){
+                // console.log(newValue = " is new value")
                 inputElement.value = newValue + minimum;
                 updateDial(newValue);
             }
@@ -122,10 +175,12 @@ class ephemerides_View extends HTMLElement
         inputElement.addEventListener('change', (e) => {
             prevValue = e.target.value - minimum;
             updateDial(e.target.value - minimum); 
-            // this.patchConnection.sendEventOrValue (endpoint, inputElement.value);
-            // console.log("sending", inputElement.value)
         })
 
+    }
+
+    updateEphemeris() {
+        console.log("hello")
     }
 
     onPatchStatusChanged = function (buildError, manifest, inputEndpoints, outputEndpoints)
@@ -145,13 +200,6 @@ class ephemerides_View extends HTMLElement
 
 window.customElements.define ("ephemerides-view", ephemerides_View);
 
-/* This is the function that a host (the command line patch player, or a Cmajor plugin
-   loader, or our VScode extension, etc) will call in order to create a view for your patch.
-
-   Ultimately, a DOM element must be returned to the caller for it to append to its document.
-   However, this function can be `async` if you need to perform asyncronous tasks, such as
-   fetching remote resources for use in the view, before completing.
-*/
 export default async function createPatchView (patchConnection)
 {
     const myView = new ephemerides_View (patchConnection);

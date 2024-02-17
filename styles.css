@@ -29,6 +29,13 @@
         padding: 8px;
     }
 
+    input {
+        border: none;
+        text-decoration: none;
+        background: none;
+        color: white;
+    }
+
     hr {
         border: 1px solid white;
         width: 40%;
@@ -82,10 +89,6 @@
         text-align: center;
         font-size: 20px;
         font-family: "verdana";
-        border: none;
-        text-decoration: none;
-        background: none;
-        color: white;
         padding: 8px;
     }
 
@@ -111,16 +114,24 @@
     .fraction {
         margin-top: 10px;
         margin-bottom: 10px;
-        padding: 8px;
+        /* padding: 8px; */
         font-size: 25px;
         line-height: 28px;
+    }
+
+    .staticFraction {
+        padding: 8px;
+    }
+
+    .inputFraction {
+        padding: 8px 8px 8px 20px;
     }
     .referenceDiv {
         padding: 11px;
     }
     .reference {
         /* width: 20%; */
-        height: 450px;
+        height: 400px;
         text-align: center;
         padding: 20px;
     }
@@ -155,7 +166,7 @@
         row-gap: 15px;
         align-content: space-around;
         padding: 9px;
-        height: 450px;
+        height: 400px;
     }
     
     #midiListen {
@@ -167,8 +178,6 @@
         padding: 10px;
         font-size: 25px;
     }
-
-
 
     #denominatorDiv {
         margin-top: 15px;

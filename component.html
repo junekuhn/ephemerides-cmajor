@@ -21,7 +21,7 @@
                     <label class="radialLabel" for="inputValue">Divisor</label>
                     <svg class="radialSVG" viewBox="0 0 30 30">
                       <circle r="45%" cx="50%" cy="50%"/>
-                      <line x1="50%" y1="50%" x2="10%" y2="70%" id="pointer" />
+                      <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
                     </svg>
                     <input type="number" id="divisorInput" min="2" max="24" step="1" value="7">
                 </div> 
@@ -34,9 +34,9 @@
                         <h2>Reference</h2>
                     </div>
                     <div class="panel">
-                        <h3 class="fraction">1</h3>
+                        <h3 class="fraction staticFraction">1</h3>
                         <hr/>
-                        <h3 class="fraction">1</h3>
+                        <h3 class="fraction staticFraction">1</h3>
                     </div>
                     <div id="midiListen" class="panel">
                         <p id="midiP">MIDI Listen</p>
@@ -52,9 +52,9 @@
                             <h3>Numerator</h3>
                         </div>
                         <div class="panel">
-                            <h3 class="fraction">2</h3>
+                            <input id="topValue" class="fraction inputFraction" type="number" min="1" max="24" value="2" step="1">
                             <hr/>
-                            <h3 class="fraction">1</h3>
+                            <input id="bottomValue" class="fraction inputFraction" type="number" min="1" max="24" value="1" step="1">
                         </div>
                         <div id="denominatorDiv">
                             <h3>Denominator</h3>
@@ -72,49 +72,49 @@
                     <label class="radialLabel" for="volume">Volume</label>
                     <svg class="radialSVG" viewBox="0 0 30 30">
                         <circle r="45%" cx="50%" cy="50%"/>
-                        <line x1="50%" y1="50%" x2="10%" y2="70%" id="pointer" />
+                        <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
                       </svg>
-                    <input id="volume" type="number" min="0" max="1" step="0.01" value="0.7"/>
+                    <input id="volume" type="number" min="-60" max="0" step="1" value="-10"/>
                 </div>
                 <div id="attackSlider" class="radialSlider panel">
                     <label class="radialLabel" for="attack">Attack</label>
                     <svg class="radialSVG" viewBox="0 0 30 30">
                         <circle r="45%" cx="50%" cy="50%"/>
-                        <line x1="50%" y1="50%" x2="10%" y2="70%" id="pointer" />
+                        <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
                       </svg>
-                    <input id="attack" type="number" min="0" max="1" step="0.01" value="0.1"/>
+                    <input id="attack" type="number" min="0" max="1" step="0.01" value="0.05"/>
                 </div>
-                <div class="radialSlider panel">
-                    <label class="radialLabel" for="volume">Sustain</label>
+                <div id="sustainSlider" class="radialSlider panel">
+                    <label class="radialLabel" for="sustain">Sustain</label>
                     <svg class="radialSVG" viewBox="0 0 30 30">
                         <circle r="45%" cx="50%" cy="50%"/>
-                        <line x1="50%" y1="50%" x2="10%" y2="70%" id="pointer" />
+                        <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
                       </svg>
                     <input id="sustain" type="number" min="0" max="1" step="0.01" value="0.5"/>
                 </div>
-                <div class="radialSlider panel">
+                <div id="releaseSlider" class="radialSlider panel">
                     <label class="radialLabel" for="release">Release</label>
                     <svg class="radialSVG" viewBox="0 0 30 30">
                         <circle r="45%" cx="50%" cy="50%"/>
-                        <line x1="50%" y1="50%" x2="10%" y2="70%" id="pointer" />
+                        <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
                       </svg>
-                    <input id="release" type="number" min="0" max="1" step="0.01" value="0.7"/>
+                    <input id="release" type="number" min="0" max="4" step="0.01" value="0.7"/>
                 </div>
-                <div class="radialSlider panel">
+                <div id="glideSlider" class="radialSlider panel">
                     <label class="radialLabel" for="glide">Glide</label>
                     <svg class="radialSVG" viewBox="0 0 30 30">
                         <circle r="45%" cx="50%" cy="50%"/>
-                        <line x1="50%" y1="50%" x2="10%" y2="70%" id="pointer" />
+                        <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
                       </svg>
-                    <input id="glide" type="number" min="0" max="1" step="0.01" value="0.1"/>
+                    <input id="glide" type="number" min="1" max="100" step="1" value="1"/>
                 </div>
                 <div class="panel">
                     <label for="shapeSelect">Wave Shape</label>
                     <div class="selectContainer">
                         <select id="shapeSelect">
                             <option value="0">Sine</option>
-                            <option value="1">Sawtooth</option>
-                            <option value="2">Square</option>
+                            <option value="1">Square</option>
+                            <option value="2">Sawtooth</option>
                             <option value="3">Triangle</option>
                         </select>
                     </div>
