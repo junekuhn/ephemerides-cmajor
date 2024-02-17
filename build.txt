@@ -106,5 +106,9 @@ now it's going well
 ___ ongoing todo ____
 for sustain, looks like it involves midi, do that later
 shape listener is acting up for some reason
-generate midi reference in cmajor 
+drone mode
+midi listen (index) 
+where does base frequency fit in?
+generate note names "c3" "a3" etc 
+finalize css and background image 
 

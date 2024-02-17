@@ -1,9 +1,5 @@
 import * as midi from "/cmaj_api/cmaj-midi-helpers.js";
 
-/*
-    This simple web component just manually creates a set of plain sliders for the
-    known parameters, and uses some listeners to connect them to the patch.
-*/
 class ephemerides_View extends HTMLElement
 {
     constructor (patchConnection)
@@ -17,7 +13,6 @@ class ephemerides_View extends HTMLElement
 
     connectedCallback()
     {  
-        const clamp = (num, min, max) => Math.min(Math.max(num, min), max)
 
         const divisorSlider = this.querySelector("#divisorSlider");
         const volumeSlider = this.querySelector("#volumeSlider");
@@ -73,10 +68,14 @@ class ephemerides_View extends HTMLElement
 
         topValueElement.addEventListener("change", (e) => {
             this.patchConnection.sendEventOrValue("topValue", topValueElement.value);
+            this.updateEphemeris();
         })
         bottomValueElement.addEventListener("change", (e) => {
             this.patchConnection.sendEventOrValue("bottomValue", bottomValueElement.value);
+            this.updateEphemeris();
         });
+
+        this.updateEphemeris();
 
     }
 
@@ -89,6 +88,8 @@ class ephemerides_View extends HTMLElement
         this.patchConnection.removeParameterListener("myShape", this.shapeListener);
         //this is an issue
         this.patchConnection.removeParameterListener("volume", this.radialListener);
+        this.patchConnection.removeParameterListener("topValue", this.topValueListener);
+        this.patchConnection.removeParameterListener("bottomValue", this.bottomValueListener);
     }
 
     async getHTML()
@@ -180,7 +181,44 @@ class ephemerides_View extends HTMLElement
     }
 
     updateEphemeris() {
-        console.log("hello")
+
+        const divisor = parseFloat(this.querySelector("#divisorInput").value);
+        const topValue = parseFloat(this.querySelector("#topValue").value);
+        const bottomValue = parseFloat(this.querySelector("#bottomValue").value);
+        const algorithm = parseFloat(this.querySelector("#algorithmSelect").value);
+
+        const calculateRatio = (midiIndex) => {
+            let ratio = 1;
+    
+            if (algorithm == 0) {
+                ratio = ((midiIndex * (topValue - bottomValue)) / divisor) + bottomValue;
+            } else if (algorithm == 1) {
+                ratio =  (midiIndex) * (topValue/bottomValue) / divisor;
+            } else if (algorithm == 2) {
+                ratio = Math.pow( Math.pow(topValue / bottomValue, 1 / divisor), midiIndex);
+            }
+        
+            return ratio.toFixed(2);
+        }
+
+
+        const numChildren = divisor + 1;
+
+        const gridElement = this.querySelector("#gridContainer");
+
+        //clear before recalculating
+        gridElement.innerHTML = "";
+
+        for(let i = 0; i < numChildren; i++) {
+            let ratio = calculateRatio(i);
+            const child = document.createElement("div");
+            child.classList.add("panel", "gridChild");
+            child.innerHTML = ratio;
+            gridElement.appendChild(child);
+        }
+
+
+
     }
 
     onPatchStatusChanged = function (buildError, manifest, inputEndpoints, outputEndpoints)
@@ -204,6 +242,5 @@ export default async function createPatchView (patchConnection)
 {
     const myView = new ephemerides_View (patchConnection);
     myView.innerHTML = await myView.getHTML();
-    // myView.addInteractivity();
     return myView;
 }
