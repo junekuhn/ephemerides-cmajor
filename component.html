@@ -83,14 +83,6 @@
                       </svg>
                     <input id="attack" type="number" min="0" max="1" step="0.01" value="0.05"/>
                 </div>
-                <div id="sustainSlider" class="radialSlider panel">
-                    <label class="radialLabel" for="sustain">Sustain</label>
-                    <svg class="radialSVG" viewBox="0 0 30 30">
-                        <circle r="45%" cx="50%" cy="50%"/>
-                        <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
-                      </svg>
-                    <input id="sustain" type="number" min="0" max="1" step="0.01" value="0.5"/>
-                </div>
                 <div id="releaseSlider" class="radialSlider panel">
                     <label class="radialLabel" for="release">Release</label>
                     <svg class="radialSVG" viewBox="0 0 30 30">
@@ -106,6 +98,12 @@
                         <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
                       </svg>
                     <input id="glide" type="number" min="1" max="100" step="1" value="1"/>
+                </div>
+                <div id="droneToggle" class="panel">
+                    <label class="droneContainer">Drone Mode
+                        <input id="droneMode" type="checkbox">
+                        <span class="checkmark"></span>
+                    </label>
                 </div>
                 <div class="panel">
                     <label for="shapeSelect">Wave Shape</label>

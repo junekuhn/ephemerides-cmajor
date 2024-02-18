@@ -221,6 +221,12 @@ class ephemerides_View extends HTMLElement
 
     }
 
+    midiNumberToString(midiNumber) {
+        const octave = Math.floor(midiNumber / 12) - 1;
+        const note = "C C#D D#E F F#G G#A A#B ".substring((midiNumber % 12) * 2, 2);
+        return note + octave;
+    }
+
     onPatchStatusChanged = function (buildError, manifest, inputEndpoints, outputEndpoints)
     {
         if (buildError)

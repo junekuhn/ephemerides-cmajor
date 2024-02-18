@@ -112,3 +112,9 @@ where does base frequency fit in?
 generate note names "c3" "a3" etc 
 finalize css and background image 
 
+
+roadmap
+karplus strong
+touchstart etc. for mobile controls 
+use class structure like in cmaj-parameter-controls 
+

@@ -30,7 +30,7 @@
         margin-bottom: 5px;
     }
 
-    input {
+    input[type="number"] {
         border: none;
         text-decoration: none;
         background: none;
@@ -53,16 +53,82 @@
         cursor: pointer;
     }
 
-    /* label {
-        font-family: Verdana, Geneva, Tahoma, sans-serif;
-        font-size: 20px;
-        text-align: center;
-        padding: 5px;
-    } */
+    /* Hide the browser's default checkbox */
+    input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+    /* Step 3: Create a custom checkbox */
+    .checkmark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 22px;
+        width: 22px;
+        background-color: #000000;
+    }
+        /* On mouse-over, add a grey background color */
+     input[type="checkbox"] ~ .checkmark:hover {
+        background-color: #ccc;
+    }
+
+        /* When the checkbox is checked, add a blue background */
+    input:checked ~ .checkmark {
+        background-color: #000000;
+    }
+
+    /* Show the checkmark when checked */
+    input:checked ~ .checkmark:after {
+        display: block;
+    }
+
+
+/* Step 6: Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+/* Step 7: Display the checkmark when checked */
+.droneContainer input:checked ~ .checkmark:after {
+    display: block;
+}
+
+      /* Style the checkmark/indicator */
+     .checkmark:after {
+    left: 9px;
+    top: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+  }
+
+  .droneContainer {
+    display: block;
+    position: relative;
+    padding-left: 35px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 22px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
 
     .main-view-element{
         background: rgb(2,0,36);
-        background: linear-gradient(171deg, rgba(2,0,36,1) 0%, rgba(49,27,65,1) 35%, rgba(0,32,38,1) 68%, rgba(0,0,0,1) 100%);
+        background: linear-gradient(171deg, rgba(2,0,36,1) 0%, rgba(49,27,65,1) 35%, rgb(78, 74, 44) 68%, rgba(0,0,0,1) 100%);
 
     }
 
