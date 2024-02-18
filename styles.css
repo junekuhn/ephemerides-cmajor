@@ -27,6 +27,7 @@
         display: block;
         font-family: "verdana";
         padding: 8px;
+        margin-bottom: 5px;
     }
 
     input {
@@ -34,6 +35,7 @@
         text-decoration: none;
         background: none;
         color: white;
+        cursor: pointer;
     }
 
     hr {
@@ -48,6 +50,7 @@
         font-size: 15px;
         margin-top: 20px;
         height: 40px;
+        cursor: pointer;
     }
 
     /* label {
@@ -56,6 +59,12 @@
         text-align: center;
         padding: 5px;
     } */
+
+    .main-view-element{
+        background: rgb(2,0,36);
+        background: linear-gradient(171deg, rgba(2,0,36,1) 0%, rgba(49,27,65,1) 35%, rgba(0,32,38,1) 68%, rgba(0,0,0,1) 100%);
+
+    }
 
     .selectContainer {
         font-family: Verdana, Geneva, Tahoma, sans-serif;
@@ -74,7 +83,7 @@
     .hflex {
         display: flex;
         flex-direction: row;
-        justify-content: space-around;
+        justify-content: space-evenly;
         margin: auto;
         /* width: 75%; */
     }
@@ -104,6 +113,7 @@
         /* width: 10%; */
         filter: drop-shadow(0px 0px 10px rgb(255 255 255 / 0));
         margin: auto;
+        cursor: pointer;
     }
 
     .radialSVG line {
@@ -148,10 +158,18 @@
 
     .gridChild {
         font-size: 16px;
-        padding-left: 13px;
-        padding-right: 13px;
-        height: 60px;
+        padding-left: 10px;
+        padding-right: 10px;
+        height: 50px;
         line-height: 50px;
+    }
+
+    #title {
+        line-height: 150px;
+        height: 90%;
+        font-size: 60px;
+        font-family: Great Vibes, cursive;
+        filter: drop-shadow(0px 0px 10px rgb(255 255 255 / 0.7));
     }
 
     /* individual elements */
@@ -159,7 +177,8 @@
         height: 100%;
         max-width: 1200px;
         min-height: 700px;
-        background-image: url('./Untitled.png');
+        /* background-image: url('./Untitled.png'); */
+
         background-position: 50%;
         background-repeat: repeat;
         background-size: cover;

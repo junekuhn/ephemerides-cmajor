@@ -198,7 +198,7 @@ class ephemerides_View extends HTMLElement
                 ratio = Math.pow( Math.pow(topValue / bottomValue, 1 / divisor), midiIndex);
             }
         
-            return ratio.toFixed(2);
+            return ratio.toFixed(3);
         }
 
 
