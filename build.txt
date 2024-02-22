@@ -112,6 +112,16 @@ where does base frequency fit in?
 generate note names "c3" "a3" etc 
 finalize css and background image 
 
+alternative: Midi note selection that gets sent to patch 
+octave input
+note input 
+midi -> freq -> basefrequency
+
+Starting with A0, ending with C8
+21 + (octave -1)*12 + index
+
+440*2^((n-69)/12)
+
 
 roadmap
 karplus strong

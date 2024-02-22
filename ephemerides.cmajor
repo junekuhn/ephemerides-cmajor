@@ -189,7 +189,7 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
         ratio = calculateRatio(index);
     }
     event baseFrequencyIn (float n) {
-        baseFrequency = std::notes::noteToFrequency(n);
+        baseFrequency = n;
         ratio = calculateRatio(index);
     }
 
@@ -204,7 +204,7 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
     E::Algorithm algo = initAlgo;
     
     int displaceIndex(int key) {
-        return key - 36;
+        return key-48;
     }
 
     float calculateRatio(int index) {

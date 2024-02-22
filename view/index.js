@@ -7,8 +7,6 @@ class ephemerides_View extends HTMLElement
         super();
         this.patchConnection = patchConnection;
         this.classList = "main-view-element";
-        // this.innerHTML = this.getHTML();
-        console.log ("MIDI message: " + midi.getMIDIDescription (0x924030));
     }
 
     connectedCallback()
@@ -17,14 +15,12 @@ class ephemerides_View extends HTMLElement
         const divisorSlider = this.querySelector("#divisorSlider");
         const volumeSlider = this.querySelector("#volumeSlider");
         const attackSlider = this.querySelector("#attackSlider");
-        const sustainSlider = this.querySelector("#sustainSlider");
         const releaseSlider = this.querySelector("#releaseSlider");
         const glideSlider = this.querySelector("#glideSlider");
 
         this.addRadialSlider(divisorSlider, "divisor");
         this.addRadialSlider(volumeSlider, "volume");
         this.addRadialSlider(attackSlider, "attack", 2);
-        this.addRadialSlider(sustainSlider, "sustain", 2)
         this.addRadialSlider(releaseSlider, "release", 2);
         this.addRadialSlider(glideSlider, "glide");
 
@@ -75,6 +71,16 @@ class ephemerides_View extends HTMLElement
             this.updateEphemeris();
         });
 
+        const droneElement = this.querySelector("#droneMode");
+        this.droneListener = value => droneElement.checked = value;
+        droneElement.addEventListener("change", (e) => {
+            this.patchConnection.sendEventOrValue("droneMode", droneElement.checked);
+        })
+
+        //set base frequency
+        this.setBaseFrequency();
+
+
         this.updateEphemeris();
 
     }
@@ -90,6 +96,7 @@ class ephemerides_View extends HTMLElement
         this.patchConnection.removeParameterListener("volume", this.radialListener);
         this.patchConnection.removeParameterListener("topValue", this.topValueListener);
         this.patchConnection.removeParameterListener("bottomValue", this.bottomValueListener);
+        this.patchConnection.removeParameterListener("droneMode", this.droneListener);
     }
 
     async getHTML()
@@ -201,7 +208,6 @@ class ephemerides_View extends HTMLElement
             return ratio.toFixed(3);
         }
 
-
         const numChildren = divisor + 1;
 
         const gridElement = this.querySelector("#gridContainer");
@@ -217,8 +223,37 @@ class ephemerides_View extends HTMLElement
             gridElement.appendChild(child);
         }
 
+    }
 
+    setBaseFrequency() {
+        //numerator and denominator
+        const noteNameElement = this.querySelector('#noteName');
+        const octaveElement = this.querySelector('#octave');
+        const noteToFrequency = (noteIndex, octave) => {
+            //converts to a number between 0 and 127
+            const midiNote = 11 + parseFloat(octave)*12 + parseFloat(noteIndex);
 
+            //converts to a frequency value
+            const baseFrequency = 440 * Math.pow(2, ((midiNote - 69) / 12));
+
+            return baseFrequency;
+        }
+
+        this.noteNameListener = value => noteNameElement.value = Math.floor(value);
+        this.octaveListener = value => octaveElement.value = Math.floor(value);
+
+        this.patchConnection.addParameterListener("noteName", this.noteNameListener);
+        this.patchConnection.addParameterListener("octave", this.octaveListener);
+
+        noteNameElement.addEventListener("change", (e) => {
+            const newBaseFrequency = noteToFrequency(noteNameElement.value, octaveElement.value);
+            this.patchConnection.sendEventOrValue("baseFrequency", newBaseFrequency);
+            console.log(newBaseFrequency)
+        })
+        octaveElement.addEventListener("change", (e) => {
+            const newBaseFrequency = noteToFrequency(noteNameElement.value, octaveElement.value);
+            this.patchConnection.sendEventOrValue("baseFrequency", newBaseFrequency);
+        }); 
     }
 
     midiNumberToString(midiNumber) {
