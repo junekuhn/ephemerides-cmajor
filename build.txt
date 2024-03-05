@@ -114,16 +114,17 @@ Starting with A0, ending with C8
 
 440*2^((n-69)/12)
 
+conditionals for cmajor
+
 ___ ongoing todo ____
 for sustain, looks like it involves midi, do that later
-put note name strings in every little box, refactor 
-set defaults / init needs to work
-volume for sawtooth and triangle
+at the moment you can't update an endpoint from midi, so you can't update the gui from midi
+web audio export kind of works, but I still need to use the web midi stuff for use 
 ----------------------
 
 timeline
 interface dev - 16 hours
-playtesting and preset making - 20 hour estimate
+playtesting
 web audio export - 16 hours 
 video content - 16 hours 
 so it's looking like april / may release

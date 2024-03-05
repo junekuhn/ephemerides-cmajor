@@ -1,0 +1,149 @@
+<body>
+    <link rel="stylesheet" href="styles.css">
+    <div id="outerContainer">
+        <section id="headerSection">
+            <div class="hflex">
+                <div class="panel">
+                    <label for="algorithmSelect">Algorithm</label>
+                    <div class="selectContainer">
+                        <select id="algorithmSelect">
+                            <option selected="selected" value="0">Arithmetic</option>
+                            <option value="1">Ratio</option>
+                            <option value="2">Tet</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <h1 id="title">Ephemerides</h1>
+                </div>
+                <div id="divisorSlider" class="radialSlider panel">
+                    <label class="radialLabel" for="inputValue">Divisor</label>
+                    <svg class="radialSVG" viewBox="0 0 30 30">
+                      <circle r="45%" cx="50%" cy="50%"/>
+                      <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
+                    </svg>
+                    <input type="number" id="divisorInput" min="2" max="24" step="1" value="7">
+                </div> 
+            </div>
+        </section>
+        <section id="ephemeridesSection">
+            <div class="hflex hspacing">
+                <div class="panel vflex reference">
+                    <div class="referenceDiv">
+                        <h2>Reference</h2>
+                    </div>
+                    <div class="panel">
+                        <h3 class="fraction staticFraction">1</h3>
+                        <hr/>
+                        <h3 class="fraction staticFraction">1</h3>
+                    </div>
+                    <div id="midiListen" class="panel">
+                        <div id="midiSelection">
+                            <select id="noteName">
+                                <option selected="selected" value="1">C</option>
+                                <option value="2">C#</option>
+                                <option value="3">D</option>
+                                <option value="4">D#</option>
+                                <option value="5">E</option>
+                                <option value="6">F</option>
+                                <option value="7">F#</option>
+                                <option value="8">G</option>
+                                <option value="9">G#</option>
+                                <option value="10">A</option>
+                                <option value="11">A#</option>
+                                <option value="12">B</option>
+                            </select>
+                            <select id="octave">
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option selected="selected" value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div id="gridContainer" class="panel hflex">
+                </div>
+                <div class="panel vflex reference">
+                    <h2 class="referenceDiv">Octave</h2>
+                    <div id="octaveDiv">
+                        <div class="referenceDiv">
+                            <h3>Numerator</h3>
+                        </div>
+                        <div class="panel">
+                            <input id="topValue" class="fraction inputFraction" type="number" min="1" max="24" value="2" step="1">
+                            <hr/>
+                            <input id="bottomValue" class="fraction inputFraction" type="number" min="1" max="24" value="1" step="1">
+                        </div>
+                        <div id="denominatorDiv">
+                            <h3>Denominator</h3>
+                        </div>
+                        <div class="panel">
+                            <p id="octaveString" class="midiRef">A3</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="synthSection">
+            <div class="hflex hspacing">
+                <div id="volumeSlider" class="radialSlider panel">
+                    <label class="radialLabel" for="volume">Volume</label>
+                    <svg class="radialSVG" viewBox="0 0 30 30">
+                        <circle r="45%" cx="50%" cy="50%"/>
+                        <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
+                      </svg>
+                    <input id="volume" type="number" min="-60" max="0" step="1" value="-10"/>
+                </div>
+                <div id="attackSlider" class="radialSlider panel">
+                    <label class="radialLabel" for="attack">Attack</label>
+                    <svg class="radialSVG" viewBox="0 0 30 30">
+                        <circle r="45%" cx="50%" cy="50%"/>
+                        <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
+                      </svg>
+                    <input id="attack" type="number" min="0" max="1" step="0.01" value="0.05"/>
+                </div>
+                <div id="releaseSlider" class="radialSlider panel">
+                    <label class="radialLabel" for="release">Release</label>
+                    <svg class="radialSVG" viewBox="0 0 30 30">
+                        <circle r="45%" cx="50%" cy="50%"/>
+                        <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
+                      </svg>
+                    <input id="release" type="number" min="0" max="4" step="0.01" value="0.7"/>
+                </div>
+                <div id="glideSlider" class="radialSlider panel">
+                    <label class="radialLabel" for="glide">Glide</label>
+                    <svg class="radialSVG" viewBox="0 0 30 30">
+                        <circle r="45%" cx="50%" cy="50%"/>
+                        <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
+                      </svg>
+                    <input id="glide" type="number" min="1" max="100" step="1" value="1"/>
+                </div>
+                <div id="droneToggle" class="panel">
+                    <label class="droneContainer">Drone Mode
+                        <input id="droneMode" type="checkbox">
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+                <div class="panel">
+                    <label for="shapeSelect">Wave Shape</label>
+                    <div class="selectContainer">
+                        <select id="shapeSelect">
+                            <option selected="selected" value="0">Sine</option>
+                            <option value="1">Square</option>
+                            <option value="2">Sawtooth</option>
+                            <option value="3">Triangle</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+
+
