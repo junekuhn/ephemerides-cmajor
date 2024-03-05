@@ -79,10 +79,13 @@ class ephemerides_View extends HTMLElement
 
         //set base frequency
         this.setBaseFrequency();
-
-
         this.updateEphemeris();
+        this.setDefaults();
 
+    }
+
+    setDefaults() {
+        this.patchConnection.sendEventOrValue("algorithmSelect", algoSelectElement.value); 
     }
 
     disconnectedCallback()
@@ -101,7 +104,7 @@ class ephemerides_View extends HTMLElement
 
     async getHTML()
     {
-        const myhtml = await fetch('../component.html');
+        const myhtml = await fetch('./component.html');
         const text  = await myhtml.text();
         return text;
     }
@@ -139,6 +142,7 @@ class ephemerides_View extends HTMLElement
 
             if(endpoint == "divisor") {
                 this.updateEphemeris();
+                this.setBaseFrequency();
             }
         }
 
@@ -235,8 +239,16 @@ class ephemerides_View extends HTMLElement
 
             //converts to a frequency value
             const baseFrequency = 440 * Math.pow(2, ((midiNote - 69) / 12));
-
             return baseFrequency;
+        }
+        const noteToString = (noteIndex, octave) => {
+            let midiNote = 11 + parseFloat(octave)*12 + parseFloat(noteIndex);
+            const myDivisor = this.querySelector("#divisorInput").value;
+            midiNote += parseFloat(myDivisor);
+            console.log(midiNote % 12)
+            const oct = Math.floor(midiNote / 12) - 1;
+            const note = "C C#D D#E F F#G G#A A#B ".substr((midiNote % 12) * 2, 2);
+            return note + oct;
         }
 
         this.noteNameListener = value => noteNameElement.value = Math.floor(value);
@@ -245,22 +257,27 @@ class ephemerides_View extends HTMLElement
         this.patchConnection.addParameterListener("noteName", this.noteNameListener);
         this.patchConnection.addParameterListener("octave", this.octaveListener);
 
+        const newOctave = noteToString(noteNameElement.value, octaveElement.value);
+        this.querySelector("#octaveString").innerHTML = newOctave;
+
         noteNameElement.addEventListener("change", (e) => {
             const newBaseFrequency = noteToFrequency(noteNameElement.value, octaveElement.value);
+
             this.patchConnection.sendEventOrValue("baseFrequency", newBaseFrequency);
             console.log(newBaseFrequency)
+            const newOctave = noteToString(noteNameElement.value, octaveElement.value);
+            this.querySelector("#octaveString").innerHTML = newOctave;
+
         })
         octaveElement.addEventListener("change", (e) => {
             const newBaseFrequency = noteToFrequency(noteNameElement.value, octaveElement.value);
             this.patchConnection.sendEventOrValue("baseFrequency", newBaseFrequency);
+            const newOctave = noteToString(noteNameElement.value, octaveElement.value);
+            this.querySelector("#octaveString").innerHTML = newOctave;
         }); 
     }
 
-    midiNumberToString(midiNumber) {
-        const octave = Math.floor(midiNumber / 12) - 1;
-        const note = "C C#D D#E F F#G G#A A#B ".substring((midiNumber % 12) * 2, 2);
-        return note + octave;
-    }
+
 
     onPatchStatusChanged = function (buildError, manifest, inputEndpoints, outputEndpoints)
     {

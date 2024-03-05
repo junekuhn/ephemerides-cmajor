@@ -103,14 +103,6 @@ it's not going smoothly
 
 now it's going well 
 
-___ ongoing todo ____
-for sustain, looks like it involves midi, do that later
-shape listener is acting up for some reason
-drone mode
-midi listen (index) 
-where does base frequency fit in?
-generate note names "c3" "a3" etc 
-finalize css and background image 
 
 alternative: Midi note selection that gets sent to patch 
 octave input
@@ -121,6 +113,22 @@ Starting with A0, ending with C8
 21 + (octave -1)*12 + index
 
 440*2^((n-69)/12)
+
+___ ongoing todo ____
+for sustain, looks like it involves midi, do that later
+put note name strings in every little box, refactor 
+set defaults / init needs to work
+volume for sawtooth and triangle
+----------------------
+
+timeline
+interface dev - 16 hours
+playtesting and preset making - 20 hour estimate
+web audio export - 16 hours 
+video content - 16 hours 
+so it's looking like april / may release
+at the moment workers break reaper, so presets aren't possible yet
+
 
 
 roadmap

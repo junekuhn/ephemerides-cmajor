@@ -19,9 +19,9 @@ graph Microtones [[main]]
     input event int algorithmSelect [[ name: "algo", text: "Arithmetic|Ratio|Tet"]];
     input event int topValue [[ name: "Numerator", min: 1, max: 24, init: 2, step: 1]];
     input event  int bottomValue [[ name: "Denominator", min: 1, max: 24, init: 1, step: 1]];
-    input event int divisor [[ name: "Divisor", min: 2, max: 24, init: 4, step: 1]];
+    input event int divisor [[ name: "Divisor", min: 2, max: 24, init: 7, step: 1]];
     input event float glide [[ name: "Glide", min: 1, max: 100, init: 1, step: 1]];
-    input event float baseFrequency [[ name: "Base Frequency", min: 0, max: 127, init: 10, step: 1]];
+    input event float baseFrequency [[ name: "Base Frequency", min: 0, max: 5000, init: 220]];
     input event bool droneMode [[ name: "Drone Mode", init: false, step:1]];
 
     //asdr
@@ -136,8 +136,10 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
     event eventIn (std::notes::NoteOn e)
     {
         index = displaceIndex(int (e.pitch));
+        console <- e.pitch;
+        console <- index;
         ratio = calculateRatio(index);
-        console <- calculateFrequency(ratio);
+        // console <- calculateFrequency(ratio);
     }
 
     event eventIn (std::notes::Control control) {
@@ -190,21 +192,22 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
     }
     event baseFrequencyIn (float n) {
         baseFrequency = n;
+        displacement = int(std::notes::frequencyToNote(n));
         ratio = calculateRatio(index);
     }
 
-    int divisor = 12;
+    int divisor = 7;
     int topValue = 2;
     int bottomValue = 1;
-    float baseFrequency = 220;
-    const int center = 60; //c3
+    float baseFrequency = 130;
     float ratio = 1;
     float glide = 1;
-    int index = 60;
+    int index = 48;
+    int displacement = 48;
     E::Algorithm algo = initAlgo;
     
     int displaceIndex(int key) {
-        return key-48;
+        return key-displacement;
     }
 
     float calculateRatio(int index) {
@@ -215,10 +218,10 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
         float bottomValue_f = float(bottomValue);
 
         //avoid divide by 0
-        if(index_f == 0) {index_f = 1;}
+        // if(index_f == 0) {index_f = 1;}
 
 		if (algo == E::Algorithm::Arithmetic) {
-            ratio = ((index_f * (topValue - bottomValue)) / divisor) + bottomValue;
+            ratio = ((index_f * (topValue_f - bottomValue_f)) / divisor_f) + bottomValue_f;
         } else if (algo == E::Algorithm::Ratio) {
 			ratio = index_f * (topValue_f/bottomValue_f) / divisor_f;
         } else if (algo == E::Algorithm::Tet) {
@@ -245,7 +248,7 @@ processor freqCalculator(E::Algorithm initAlgo = E::Algorithm::Arithmetic) {
 
             // GLIDE
             float difference = calculateFrequency(ratio) - freq;
-            freq += 0.001f * difference / glide ;
+            freq += 0.01f * difference / glide ;
 
             advance();
         }
