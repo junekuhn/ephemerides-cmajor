@@ -85,6 +85,7 @@ class ephemerides_View extends HTMLElement
         this.setBaseFrequency();
         this.updateEphemeris();
         this.setDefaults();
+        this.processMIDI();
 
         // this.allListener = value => console.log(value);
         // this.patchConnection.addAllParameterListener(this.allListener)
@@ -309,6 +310,74 @@ class ephemerides_View extends HTMLElement
             this.querySelector("#octaveString").innerHTML = newOctave;
             this.updateEphemeris();
         }); 
+    }
+
+    processMIDI() {
+        console.log("process midi")
+
+        let framesPerCallback = 10;
+
+        const midiListener = (input) => {
+
+                const message = input.message;
+
+
+
+            //if it's a controller value
+            if (midi.isController(message)) {
+                const controlNumber = midi.getControllerNumber(message);
+                const controlValue = midi.getControllerValue(message);
+
+                console.log("number " + controlNumber + " . value " + controlValue);
+
+                //update values of input elements
+                switch(controlNumber) {
+                    case 0:
+                        let vol = this.querySelector("#volume");
+                        let newVol = range(controlValue, 0, 127, parseFloat(vol.min), parseFloat(vol.max));
+                        vol.value = newVol;
+                        vol.dispatchEvent(new Event("change"));
+                        break;
+                    case 1:
+                        let shape = this.querySelector("#shapeSelect");
+                        let newShape = Math.floor(range(controlValue, 0, 127, 0, 3))
+                        shape.value = newShape;
+                        shape.dispatchEvent(new Event("change"));
+                        break;
+                    case 2:
+                        let attack = this.querySelector("#attack");
+                        let newAttack = range(controlValue, 0, 127, parseFloat(attack.min), parseFloat(attack.max));
+                        attack.value = newAttack;
+                        attack.dispatchEvent(new Event("change"));
+                        break;
+                    case 5:
+                        let release = this.querySelector("#release");
+                        let newRelease = range(controlValue, 0, 127, parseFloat(release.min), parseFloat(release.max));
+                        release.value = newRelease;
+                        release.dispatchEvent(new Event("change"));
+                        break;
+                    case 6:
+                        let algo = this.querySelector("#algorithmSelect");
+                        let newAlgo = Math.floor(range(controlValue, 0, 127, 0, 2.9));
+                        algo.value = newAlgo;
+                        algo.dispatchEvent(new Event("change"));
+                        break;
+                    case 7:
+                        break;
+
+                    default:
+                        break;
+                }
+            } else {
+                console.log(midi.getMIDIDescription(message))
+            }
+        }
+
+        this.patchConnection.addEndpointListener("midiOut", midiListener, framesPerCallback);
+
+        const range = (x, min1, max1, min2, max2) => {
+            return (x * (max2-min2) / (max1-min1)) + min2;
+        }
     }
 
 

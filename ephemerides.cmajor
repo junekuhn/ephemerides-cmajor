@@ -10,10 +10,13 @@ graph Microtones [[main]]
 {
     //defining inputs and outputs
     output stream float out;
+    // output event std::notes::Control midiOut;
+    output event std::midi::Message midiOut;
     // input gain.volume;
     input event float volume [[ name: "Volume", min: -60, max: 0, init: -10]];
     // input wave.frequencyIn;
     input event std::midi::Message midiIn;
+
     // input event (std::notes::NoteOn, std::notes::NoteOff) eventIn;
     input event float32 myShape [[ name: "shape", min: 0, max: 4, init: 0, step: 1, text: "Sine|Square|Saw|Triangle"]];
     input event int algorithmSelect [[ name: "algo", text: "Arithmetic|Ratio|Tet"]];
@@ -47,6 +50,7 @@ graph Microtones [[main]]
         //send a NoteOn to eventin
         midiIn -> std::midi::MPEConverter;
         std::midi::MPEConverter.eventOut -> voiceAllocator.eventIn;
+        midiIn -> midiOut;
         droneMode -> voiceAllocator.droneModeIn;
         voiceAllocator.voiceEventOut -> voices.notesIn;
         myShape -> voices.shape;
