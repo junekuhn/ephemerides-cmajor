@@ -120,9 +120,16 @@ when I forward raw data, it's just 0's !?
 same when I convert to event out control
 its object.message as a json object lol 
 
+
+building to juce plugins
+cmaj generate --target=juce
+                --output=/Users/mx/code/JUCE/Ephemerides
+                --jucePath=/Users/mx/code/JUCE/JUCE
+                ephemerides.cmajorpatch
+
 ___ ongoing todo ____
 for sustain, looks like it involves midi, do that later
-at the moment you can't update an endpoint from midi, so you can't update the gui from midi
+midi for reference
 web audio 
  - Web MIDI intergration
  - Volume visualiser?

@@ -10,7 +10,7 @@
     "isInstrument":     true,
     "source":           "Ephemerides.cmajor",
     "view": {
-        "src":       "view/index.js",
+        "src":       "view/main.js",
         "width":     1000,
         "height":    800,
         "resizable": true

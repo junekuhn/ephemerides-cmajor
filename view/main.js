@@ -118,11 +118,461 @@ class ephemerides_View extends HTMLElement
         this.patchConnection.removeParameterListener("droneMode", this.droneListener);
     }
 
-    async getHTML()
+    getHTML()
     {
-        const myhtml = await fetch('../component.html');
-        const text  = await myhtml.text();
-        return text;
+        return `
+        <body>
+        <style>
+        .main-view-element {
+            background: black;
+            display: block;
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            overflow: auto;
+        }
+        
+        .param {
+            display: inline-block;
+            margin: 10px;
+            width: 300px;
+        }
+        
+        /* overall stuff */
+        section {
+            color: white;
+        }
+        
+        h2, h3 {
+            font-family: 'Verdana';
+            font-weight: 400;
+        }
+        
+        label {
+            text-align: center;
+            width: 100%;
+            height: 30px;
+            font-size: 20px;
+            display: block;
+            font-family: "verdana";
+            padding: 8px;
+            margin-bottom: 5px;
+        }
+        
+        input[type="number"] {
+            border: none;
+            text-decoration: none;
+            background: none;
+            color: white;
+            cursor: pointer;
+        }
+        
+        hr {
+            border: 1px solid white;
+            width: 40%;
+            margin: auto;
+        }
+        
+        select {
+            background: none;
+            color: white;
+            font-size: 15px;
+            /* margin-top: 12px; */
+            height: 40px;
+            cursor: pointer;
+        }
+        
+        /* Hide the browser's default checkbox */
+        input[type="checkbox"] {
+            position: absolute;
+            top: 60px;
+            left: 50px;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        /* Step 3: Create a custom checkbox */
+        .checkmark {
+            position: absolute;
+            top: 54px;
+            left: 42px;
+            height: 50px;
+            width: 50px;
+            background-color: #000000;
+            border-radius: 5px;
+        }
+            /* On mouse-over, add a grey background color */
+        .checkmark:hover {
+            background-color: #ccc;
+        }
+        
+        /* Show the checkmark when checked */
+        .checkmark:after {
+            display: block;
+        }
+        
+        
+        /* Step 6: Create the checkmark/indicator (hidden when not checked) */
+        .checkmark:after {
+        content: "";
+        position: absolute;
+        display: none;
+        }
+        
+        /* Step 7: Display the checkmark when checked */
+        .droneContainer input:checked ~ .checkmark:after {
+        display: block;
+        }
+        
+            /* Style the checkmark/indicator */
+            .checkmark:after {
+        left: 15px;
+        top: 5px;
+        width: 15px;
+        height: 30px;
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        transform: rotate(45deg);
+        }
+        
+        .droneContainer {
+        display: block;
+        position: relative;
+        margin-bottom: 12px;
+        cursor: pointer;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        }
+        
+        
+        .main-view-element{
+            background: rgb(2,0,36);
+            background: linear-gradient(171deg, rgba(2,0,36,1) 0%, rgba(49,27,65,1) 35%, rgb(59, 59, 59) 68%, rgb(41, 41, 41) 100%);
+        
+        }
+        
+        .selectContainer {
+            font-family: "Verdana";
+            font-size: 14px;
+            padding: 20px;
+        }
+        
+        /* classes */
+        .panel {
+            color: white;
+            border: 1px solid #ffffff88;
+            /* padding: 8px; */
+            border-radius: 5px;
+            background-color: #ffffff22;
+        }
+        
+        .hflex {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            margin: auto;
+            /* width: 75%; */
+        }
+        
+        .vflex {
+            display: flex;
+            flex-direction: column;
+            justify-content: start;
+        }
+        
+            .radialSlider input {
+            width: 100%;
+            text-align: center;
+            font-size: 20px;
+            font-family: "verdana";
+            padding: 8px;
+        }
+        
+        
+        .radialSVG circle {
+            fill: #000;
+            stroke-width: 1px;
+            stroke: #fff;
+        }
+        
+        .radialSVG {
+            /* width: 10%; */
+            filter: drop-shadow(0px 0px 10px rgb(255 255 255 / 0));
+            margin: auto;
+            cursor: pointer;
+        }
+        
+        .radialSVG line {
+        stroke-width: 1px;
+        stroke: #fff;
+        transform-origin: center center;        
+        }
+        
+        .fraction {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            /* padding: 8px; */
+            font-size: 25px;
+            line-height: 28px;
+        }
+        
+        .staticFraction {
+            padding: 8px;
+        }
+        
+        .inputFraction {
+            padding: 8px 8px 8px 20px;
+        }
+        .referenceDiv {
+            padding: 11px;
+            margin-bottom: 20px;
+        }
+        .reference {
+            /* width: 20%; */
+            height: 400px;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .midiRef {
+            padding: 15px;
+            font-size: 30px;
+        }
+        
+        .hspacing {
+            column-gap: 20px;
+        }
+        
+        .gridChild {
+            font-size: 16px;
+            padding-left: 10px;
+            padding-right: 10px;
+            height: 80px;
+            line-height: 40px;
+        }
+        
+        #title {
+            line-height: 150px;
+            height: 90%;
+            font-size:75px;
+            font-family: "Great Vibes", cursive;
+            filter: drop-shadow(0px 0px 10px rgb(255 255 255 / 0.7));
+        }
+        
+        /* individual elements */
+        #outerContainer {
+            height: 100%;
+            max-width: 1200px;
+            min-height: 700px;
+            /* background-image: url('./Untitled.png'); */
+        
+            background-position: 50%;
+            background-repeat: repeat;
+            background-size: cover;
+            background-attachment: scroll;
+            border-radius: 0;
+        }
+        
+        
+        
+        #gridContainer {
+            width: 60%;
+            column-gap: 15px;
+            row-gap: 15px;
+            text-align: center;
+            align-content: space-around;
+            padding: 9px;
+            height: 400px;
+            flex-wrap: wrap;
+        }
+        
+        #midiListen {
+            margin-top: 30px;
+            padding: 30px 10px 30px 10px;
+        }
+        
+        #midiListen select {
+            font-size: 20px;
+        }
+        
+        #midiP {
+            padding: 10px;
+            font-size: 25px;
+        }
+        
+        .numDiv {
+            margin-bottom: 5px;
+        }
+        
+        #denominatorDiv {
+            margin-top: 5px;
+            margin-bottom: 20px;
+        }
+        
+        
+        
+        #synthSection {
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+        
+        #ephemeridesSection {
+            margin-top: 15px;
+        }
+        
+        #octaveContainer {
+            margin-top: 30px;
+        }
+        </style>
+        <link rel="stylesheet" href="styles.css">
+        <div id="outerContainer">
+            <section id="headerSection">
+                <div class="hflex">
+                    <div class="panel">
+                        <label for="algorithmSelect">Algorithm</label>
+                        <div class="selectContainer">
+                            <select id="algorithmSelect">
+                                <option selected="selected" value="0">Arithmetic</option>
+                                <option value="1">Ratio</option>
+                                <option value="2">Tet</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 id="title">Ephemerides</h1>
+                    </div>
+                    <div id="divisorSlider" class="radialSlider panel">
+                        <label class="radialLabel" for="inputValue">Divisor</label>
+                        <svg class="radialSVG" viewBox="0 0 30 30">
+                          <circle r="45%" cx="50%" cy="50%"/>
+                          <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
+                        </svg>
+                        <input type="number" id="divisorInput" min="2" max="24" step="1" value="7">
+                    </div> 
+                </div>
+            </section>
+            <section id="ephemeridesSection">
+                <div class="hflex hspacing">
+                    <div class="panel vflex reference">
+                        <div class="referenceDiv">
+                            <h2>Reference</h2>
+                        </div>
+                        <div class="panel">
+                            <h3 class="fraction staticFraction">1</h3>
+                            <hr/>
+                            <h3 class="fraction staticFraction">1</h3>
+                        </div>
+                        <div id="midiListen" class="panel">
+                            <div id="midiSelection">
+                                <select id="noteName">
+                                    <option selected="selected" value="1">C</option>
+                                    <option value="2">C#</option>
+                                    <option value="3">D</option>
+                                    <option value="4">D#</option>
+                                    <option value="5">E</option>
+                                    <option value="6">F</option>
+                                    <option value="7">F#</option>
+                                    <option value="8">G</option>
+                                    <option value="9">G#</option>
+                                    <option value="10">A</option>
+                                    <option value="11">A#</option>
+                                    <option value="12">B</option>
+                                </select>
+                                <select id="octave">
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option selected="selected" value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="gridContainer" class="panel hflex">
+                    </div>
+                    <div class="panel vflex reference">
+                        <h2 class="referenceDiv">Octave</h2>
+                        <div id="octaveDiv">
+                            <div class="panel">
+                                <input id="topValue" class="fraction inputFraction" type="number" min="1" max="24" value="2" step="1">
+                                <hr/>
+                                <input id="bottomValue" class="fraction inputFraction" type="number" min="1" max="24" value="1" step="1">
+                            </div>
+                            <div id="octaveContainer" class="panel">
+                                <p id="octaveString" class="midiRef">A3</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section id="synthSection">
+                <div class="hflex hspacing">
+                    <div id="volumeSlider" class="radialSlider panel">
+                        <label class="radialLabel" for="volume">Volume</label>
+                        <svg class="radialSVG" viewBox="0 0 30 30">
+                            <circle r="45%" cx="50%" cy="50%"/>
+                            <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
+                          </svg>
+                        <input id="volume" type="number" min="-60" max="0" step="1" value="-10"/>
+                    </div>
+                    <div id="attackSlider" class="radialSlider panel">
+                        <label class="radialLabel" for="attack">Attack</label>
+                        <svg class="radialSVG" viewBox="0 0 30 30">
+                            <circle r="45%" cx="50%" cy="50%"/>
+                            <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
+                          </svg>
+                        <input id="attack" type="number" min="0" max="1" step="0.01" value="0.05"/>
+                    </div>
+                    <div id="releaseSlider" class="radialSlider panel">
+                        <label class="radialLabel" for="release">Release</label>
+                        <svg class="radialSVG" viewBox="0 0 30 30">
+                            <circle r="45%" cx="50%" cy="50%"/>
+                            <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
+                          </svg>
+                        <input id="release" type="number" min="0" max="4" step="0.01" value="0.7"/>
+                    </div>
+                    <div id="glideSlider" class="radialSlider panel">
+                        <label class="radialLabel" for="glide">Glide</label>
+                        <svg class="radialSVG" viewBox="0 0 30 30">
+                            <circle r="45%" cx="50%" cy="50%"/>
+                            <line x1="50%" y1="50%" x2="10%" y2="70%" class="pointer" />
+                          </svg>
+                        <input id="glide" type="number" min="1" max="100" step="1" value="1"/>
+                    </div>
+                    <div id="droneToggle" class="panel">
+                        <label class="droneContainer">Drone Mode
+                            <input id="droneMode" type="checkbox">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                    <div class="panel">
+                        <label for="shapeSelect">Wave Shape</label>
+                        <div class="selectContainer">
+                            <select id="shapeSelect">
+                                <option selected="selected" value="0">Sine</option>
+                                <option value="1">Square</option>
+                                <option value="2">Sawtooth</option>
+                                <option value="3">Triangle</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </body>    
+        `
     }
 
     addRadialSlider(radial, endpoint, step=0) {
@@ -431,6 +881,6 @@ window.customElements.define ("ephemerides-view", ephemerides_View);
 export default async function createPatchView (patchConnection)
 {
     const myView = new ephemerides_View (patchConnection);
-    myView.innerHTML = await myView.getHTML();
+    myView.innerHTML = myView.getHTML();
     return myView;
 }
